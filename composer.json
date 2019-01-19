@@ -1,0 +1,41 @@
+{
+    "name": "jerome-rdlv/dummy",
+    "description": "",
+    "type": "wp-cli-package",
+    "homepage": "https://github.com/jerome-rdlv/dummy",
+    "license": "MIT",
+    "authors": [],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "wordpress-install-dir": "vendor/wordpress",
+        "installer-paths": {
+            "vendor/wordpress/wp-content/mu-plugins/{$name}/": [
+                "type:wordpress-muplugin"
+            ],
+            "vendor/wordpress/wp-content/plugins/{$name}/": [
+                "type:wordpress-plugin"
+            ],
+            "vendor/wordpress/wp-content/themes/{$name}/": [
+                "type:wordpress-theme"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Rdlv\\WordPress\\Dummy\\": "class/"
+        },
+        "files": [ "command.php" ]
+    },
+    "require": {
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "require-dev": {
+        "johnpbloch/wordpress": ">=4.5",
+        "wpackagist-plugin/advanced-custom-fields": "^5.7"
+    },
+    "repositories": [
+        { "type": "composer", "url": "https://wpackagist.org" }
+    ]
+}

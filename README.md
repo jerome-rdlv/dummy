@@ -50,7 +50,13 @@ Github issues aren't for general support questions, but there are other venues y
 
 ## TODO
 
-* add options on image type (orientation, colors, editor_choice, type (but will force to call API for each image)
+* progress in branches without breaking that first version
+* remove Guzzle dependency
+* basculer tests sur Pharea ?
+* tester sans prefix ACF (sur champ texte simple)
+* tester extensibilité (sortir type image dans un package différent) options de type / hooks / interface, etc. e
+* pour image, reproductible : plus de random de page, mais paramètres de page et de search (pour pouvoir chercher sur le site, et charger la sélection établie visuellement)
+* voir pour récupérer tous les fields acf pour un post_id donné (permet de réagir différemment au besoin, notamment types complexes)
 * look for ACF real auto generation (begin with get_field_object inspection with deep structure and clone fields)
 * allow for length range in html type
 * add support for video (see pixabay.com API doc https://pixabay.com/api/docs/)

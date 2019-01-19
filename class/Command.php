@@ -57,6 +57,7 @@ class Command
     const API_IMAGE_OPTIONS = [
         'orientation' => ['horizontal', 'vertical'],
         'image_type'  => ['photo', 'illustration', 'vector'],
+        'category'    => ['fashion', 'nature', 'backgrounds', 'science', 'education', 'people', 'feelings', 'religion', 'health', 'places', 'animals', 'industry', 'food', 'computer', 'sports', 'transportation', 'travel', 'buildings', 'business', 'music'],
         'colors'      => ['grayscale', 'transparent', 'red', 'orange', 'yellow', 'green', 'turquoise', 'blue', 'lilac', 'pink', 'white', 'gray', 'black', 'brown'],
     ];
 
@@ -214,12 +215,24 @@ class Command
      * [--image-options=<image_options>]
      * : Options for the loaded images
      * ---
-     * default: photo/horizontal
+     * default: photo/horizontal/industry
      * ---
-     * It is possible to chose orientation (horizontal, vertical), type (photo,
-     *  illustration, vector) and color (grayscale, transparent, red, orange,
-     * yellow, green, turquoise, blue, lilac, pink, white, gray, black, brown)
-     * 
+     * It is possible to chose:
+     *  - orientation:
+     *    - horizontal
+     *    - vertical
+     *  - type
+     *    - photo
+     *    - illustration
+     *    - vector
+     *  - category
+     *    fashion, nature, backgrounds, science, education, people,
+     *    feelings, religion, health, places, animals, industry, food,
+     *    computer, sports, transportation, travel, buildings, business, music
+     *  - color
+     *    grayscale, transparent, red, orange, yellow, green, turquoise, blue,
+     *    lilac, pink, white, gray, black, brown
+     *
      * [--thumb]
      * : Enable default thumb generation, enabled by default, use --no-thumb to disable
      *
@@ -245,7 +258,7 @@ class Command
         }
 
         $this->images_params['key'] = $this->image_api_key;
-        
+
         foreach (explode('/', $assoc_args['image-options']) as $option) {
             if ($option) {
                 $match = false;

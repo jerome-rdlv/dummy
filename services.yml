@@ -1,0 +1,63 @@
+parameters:
+    env(PIXABAY_KEY):
+services:
+    _defaults:
+        autoconfigure: true
+        public: false
+    _instanceof:
+        \Rdlv\WordPress\Dummy\CommandInterface:
+            tags: ['app.command']
+        \Rdlv\WordPress\Dummy\HandlerInterface:
+            tags: ['app.handler']
+        \Rdlv\WordPress\Dummy\TypeInterface:
+            tags: ['app.type']
+        \Rdlv\WordPress\Dummy\Initialized:
+            tags: ['app.initialized']
+        \Rdlv\WordPress\Dummy\UseHandlersInterface:
+            tags: ['app.use_handlers']
+        \Rdlv\WordPress\Dummy\UseTypesInterface:
+            tags: ['app.use_types']
+    date:
+        class: \Rdlv\WordPress\Dummy\RandomDate
+    html:
+        class: \Rdlv\WordPress\Dummy\Loripsum
+    image:
+        class: \Rdlv\WordPress\Dummy\Pixabay
+        calls:
+            - [set_key, ['%env(PIXABAY_KEY)%']]
+    text:
+        class: \Rdlv\WordPress\Dummy\LoripsumWords
+        arguments: ['@html']
+    raw:
+        class: \Rdlv\WordPress\Dummy\RawValue
+    meta:
+        class: \Rdlv\WordPress\Dummy\MetaHandler
+    acf:
+        class: \Rdlv\WordPress\Dummy\AcfHandler
+        arguments:
+            $connections:
+                image: image
+                wysiwyg: html:4/ul/h2/h3
+                text: text:4:16
+                textarea: text:10:60
+    generate:
+        class: \Rdlv\WordPress\Dummy\CommandGenerate
+        public: true
+        arguments:
+            $aliases:
+                author: post_author
+                content: post_content
+                date: post_date
+                thumb: meta:_thumbnail_id
+                title: post_title
+                status: post_status
+            $defaults:
+                content: html:6/ul/h2/h3
+                date: date:4 months ago:now
+                thumb: image
+                title: text:4:16
+                status: publish
+                author: ''
+    clear:
+        class: \Rdlv\WordPress\Dummy\CommandClear
+        public: true

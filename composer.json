@@ -1,6 +1,6 @@
 {
     "name": "jerome-rdlv/dummy",
-    "description": "",
+    "description": "Generate rich and complex dummy content in WordPress for testing and development purpose",
     "type": "wp-cli-package",
     "homepage": "https://github.com/jerome-rdlv/dummy",
     "license": "MIT",
@@ -23,17 +23,21 @@
     },
     "autoload": {
         "psr-4": {
-            "Rdlv\\WordPress\\Dummy\\": "class/"
+            "Rdlv\\WordPress\\Dummy\\": "inc/"
         },
         "files": [ "command.php" ]
     },
     "require": {
+        "php": ">=7.3",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^6.3",
+        "symfony/yaml": "^4.2",
+        "symfony/dependency-injection": "^4.2",
+        "symfony/config": "^4.2"
     },
     "require-dev": {
         "johnpbloch/wordpress": ">=4.5",
-        "wpackagist-plugin/advanced-custom-fields": "^5.7"
+        "wpackagist-plugin/advanced-custom-fields": ">=5.7"
     },
     "repositories": [
         { "type": "composer", "url": "https://wpackagist.org" }

@@ -1,0 +1,187 @@
+<?php
+
+
+namespace Rdlv\WordPress\Dummy;
+
+
+/**
+ * Populate ACF field
+ */
+class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
+{
+    use UseTypesTrait, OutputTrait;
+
+    private $post_type;
+
+    /**
+     * Connections between ACF field types and generator types and parameters
+     * @var array
+     */
+    private $connections;
+
+    public function __construct($connections)
+    {
+        $this->connections = $connections;
+    }
+
+    /**
+     * todo refacto so I do not have to recode field value parsing here
+     * @param $acf_field_type
+     */
+    private function type_get($post_id, $acf_field_type)
+    {
+        if (!array_key_exists($acf_field_type, $this->connections)) {
+            return null;
+        }
+
+        if (!preg_match(
+            sprintf(CommandGenerate::FIELD_VALUE_PREG, '[a-z0-9]+'),
+            $this->connections[$acf_field_type],
+            $m
+        )) {
+            return null;
+        }
+        
+        $field = new Field();
+        $field->value = $m['value'];
+        $field->type = isset($m['type']) ? $m['type'] : '';
+        $field->options = isset($m['options']) ? $m['options'] : '';
+
+        if (isset($field->type)) {
+            if (isset($field->options)) {
+                $field->value = $field->options;
+                $field->options = null;
+            } else {
+                $field->value = null;
+            }
+        } else {
+            $field->type = 'raw';
+        }
+        
+        $type = $this->get_type($field->type);
+
+        return $type ? $type->get($post_id, $field->value) : null;
+    }
+
+    public function init($args, $assoc_args)
+    {
+        if (!function_exists('acf_get_field_groups')) {
+            $this->error('ACF is not loaded.');
+        }
+        $this->post_type = $assoc_args['post-type'];
+    }
+
+    /**
+     * @param integer $post_id
+     * @param Field $field
+     * @return void
+     */
+    public function generate($post_id, $field)
+    {
+        $field_object = $this->get_field_object($field, $post_id);
+        if (!$field_object) {
+            $this->error(sprintf('ACF: field test not found for post %s of type %s', $post_id, $this->post_type));
+        }
+
+        update_field(
+            $field->name,
+            $this->populate($post_id, $field_object),
+            $post_id
+        );
+    }
+
+    private function get_rand_count($field_object, $max, $min = 0)
+    {
+        return rand(
+            $field_object['min'] ? $field_object['min'] : $min,
+            min(
+                $field_object['max'] ? $field_object['max'] : $max,
+                $max
+            )
+        );
+    }
+
+    /**
+     * @param integer $post_id
+     * @param array $field_object
+     */
+    private function populate($post_id, $field_object)
+    {
+        switch ($field_object['type']) {
+            case 'tab':
+            case 'message':
+                return null;
+            case 'flexible_content':
+                $rows = [];
+                $layouts = $field_object['layouts'];
+
+                $count = $this->get_rand_count($field_object, floor(1.6 * count($layouts)), 1);
+                for ($i = 0; $i < $count; ++$i) {
+                    $layout = $layouts[array_rand($layouts)];
+                    $row = [];
+                    foreach ($layout['sub_fields'] as $sub_field) {
+                        $value = $this->populate($post_id, $sub_field);
+                        if ($value) {
+                            $row[$sub_field['name']] = $value;
+                        }
+                    }
+                    $row['acf_fc_layout'] = $layout['name'];
+                    $rows[] = $row;
+                }
+                return $rows;
+            case 'repeater':
+                $rows = [];
+                $count = $this->get_rand_count($field_object, 8);
+                for ($i = 0; $i < $count; ++$i) {
+                    $row = [];
+                    foreach ($field_object['sub_fields'] as $sub_field) {
+                        $value = $this->populate($post_id, $sub_field);
+                        if ($value) {
+                            $row[$sub_field['name']] = $value;
+                        }
+                    }
+                    $rows[] = $row;
+                }
+                return $rows;
+            case 'selection':
+            case 'checkbox':
+            case 'radio':
+                $choices = $field_object['choices'];
+                return $choices[array_rand($choices)];
+            case 'number':
+                return $this->get_rand_count($field_object, 1000);
+            default:
+                return $this->type_get($post_id, $field_object['type']);
+        }
+    }
+
+    private function get_field_object($field, $post_id = null)
+    {
+        /** @noinspection PhpUndefinedFunctionInspection */
+        $groups = acf_get_field_groups([
+            'post_id'   => $post_id,
+            'post_type' => $this->post_type,
+        ]);
+
+        $fields = [];
+
+        if ($groups) {
+            foreach ($groups as $group) {
+                /** @noinspection PhpUndefinedFunctionInspection */
+                $fields = array_merge($fields, acf_get_fields($group));
+            }
+        }
+
+        if ($fields) {
+            for ($i = count($fields) - 1; $i >= 0; --$i) {
+                if ($fields[$i]['key'] === $field->name) {
+                    return $fields[$i];
+                } elseif ($fields[$i]['name'] === $field->name) {
+                    return $fields[$i];
+                }
+            }
+        }
+
+        return null;
+    }
+}

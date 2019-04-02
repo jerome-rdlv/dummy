@@ -1,5 +1,7 @@
 parameters:
     env(PIXABAY_KEY):
+    env(UNSPLASH_ACCESS):
+    env(UNSPLASH_SECRET):
 services:
     _defaults:
         autoconfigure: true
@@ -21,10 +23,14 @@ services:
         class: \Rdlv\WordPress\Dummy\RandomDate
     html:
         class: \Rdlv\WordPress\Dummy\Loripsum
+#    image:
+#        class: \Rdlv\WordPress\Dummy\Pixabay
+#        calls:
+#            - [set_key, ['%env(PIXABAY_KEY)%']]
     image:
-        class: \Rdlv\WordPress\Dummy\Pixabay
+        class: \Rdlv\WordPress\Dummy\Unsplash
         calls:
-            - [set_key, ['%env(PIXABAY_KEY)%']]
+            - [set_keys, ['%env(UNSPLASH_ACCESS)%', '%env(UNSPLASH_SECRET)%']]
     text:
         class: \Rdlv\WordPress\Dummy\LoripsumWords
         arguments: ['@html']
@@ -51,6 +57,7 @@ services:
                 thumb: meta:_thumbnail_id
                 title: post_title
                 status: post_status
+                template: meta:_wp_page_template
             $defaults:
                 content: html:6/ul/h2/h3
                 date: date:4 months ago:now

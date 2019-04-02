@@ -115,7 +115,7 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
                 $rows = [];
                 $layouts = $field_object['layouts'];
 
-                $count = $this->get_rand_count($field_object, floor(1.6 * count($layouts)), 1);
+                $count = $this->get_rand_count($field_object, floor(1.6 * count($layouts)));
                 for ($i = 0; $i < $count; ++$i) {
                     $layout = $layouts[array_rand($layouts)];
                     $row = [];

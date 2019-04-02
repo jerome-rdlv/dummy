@@ -21,6 +21,11 @@ abstract class AbstractTypeImage
             exit;
         }
         $image_id = media_sideload_image($url, $post_id, $desc, 'id');
+        
+        if ($image_id instanceof \WP_Error) {
+            $this->error($image_id->get_error_message());
+            exit;
+        }
         update_post_meta($image_id, '_dummy', true);
 
         // set post_status as draft to hide image in admin screens

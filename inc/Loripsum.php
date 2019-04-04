@@ -9,41 +9,22 @@ use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Retrieve random text or rich text from http://loripsum.net/
- *
- * todo drop that, it’s non sense
- * [--loripsum-html-defaults=<defaults>]
- * : Default parameters for html. They can be overridden with each call to html type.
- * ---
- * default: 6/ul/h2/h3
- * ---
- *
- * [--loripsum-text-defaults=<defaults>]
- * : Default parameters for text. They can be overridden with each call to html type.
- * ---
- * default: 6/ul/h2/h3
- * ---
  */
-class Loripsum implements TypeInterface
+class Loripsum implements GeneratorInterface
 {
     use OutputTrait;
     
     const API_HTML_URL = 'https://loripsum.net/api/%s';
 
-//    public function get_defaults($type, $assoc_args)
-//    {
-//        return isset($assoc_args) ? $assoc_args['loripsum-defaults'] : null;
-//    }
-
-    /**
-     * @param $value
-     * @return mixed
-     */
-    public function get($post_id, $options)
+    public function get($options, $post_id = null)
     {
+        $query = implode('/', array_unique(array_map(function ($option) {
+            return preg_match('/^h[1-6]$/', $option) ? 'headers' : $option;
+        }, $options)));
+        
         $levels = array_filter(array_map(function ($option) {
             return preg_replace('/(h([1-6])|.*)/', '\2', $option);
-        }, explode('/', $options)));
-        $query = preg_replace('/\bh[1-6]\b/', 'headers', $options);
+        }, $options));
 
         try {
             $client = new Client();

@@ -34,7 +34,7 @@ use WP_CLI;
  * default: 25
  * ---
  */
-class Pixabay extends AbstractTypeImage implements TypeInterface, Initialized
+class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Initialized
 {
     const API_IMAGE_URL = 'https://pixabay.com/api/';
     const API_IMAGE_DESC = '<a href="%1$s">Photo</a> by ' .
@@ -129,13 +129,7 @@ class Pixabay extends AbstractTypeImage implements TypeInterface, Initialized
         }
     }
 
-    /**
-     * @param $post_id
-     * @param $options
-     * @return mixed|string|\WP_Error
-     * @throws Exception
-     */
-    public function get($post_id, $options)
+    public function get($options, $post_id = null)
     {
         if ($this->images_index >= count($this->images_data)) {
             // load more images
@@ -148,9 +142,6 @@ class Pixabay extends AbstractTypeImage implements TypeInterface, Initialized
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
 
-    /**
-     * @param $options
-     */
     private function load_images()
     {
         $images_count = count($this->images_data);
@@ -161,7 +152,7 @@ class Pixabay extends AbstractTypeImage implements TypeInterface, Initialized
         }
 
         if (!$this->api_key) {
-            $this->error('To use image type, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
+            $this->error('To use Pixabay image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
         }
 
         try {

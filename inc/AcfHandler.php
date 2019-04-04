@@ -7,14 +7,14 @@ namespace Rdlv\WordPress\Dummy;
 /**
  * Populate ACF field
  */
-class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
+class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initialized
 {
-    use UseTypesTrait, OutputTrait;
+    use UseFieldParserTrait, OutputTrait;
 
     private $post_type;
 
     /**
-     * Connections between ACF field types and generator types and parameters
+     * Connections between ACF field types and values
      * @var array
      */
     private $connections;
@@ -24,51 +24,17 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
         $this->connections = $connections;
     }
 
-    /**
-     * todo refacto so I do not have to recode field value parsing here
-     * @param $acf_field_type
-     */
-    private function type_get($post_id, $acf_field_type)
-    {
-        if (!array_key_exists($acf_field_type, $this->connections)) {
-            return null;
-        }
-
-        if (!preg_match(
-            sprintf(CommandGenerate::FIELD_VALUE_PREG, '[a-z0-9]+'),
-            $this->connections[$acf_field_type],
-            $m
-        )) {
-            return null;
-        }
-        
-        $field = new Field();
-        $field->value = $m['value'];
-        $field->type = isset($m['type']) ? $m['type'] : '';
-        $field->options = isset($m['options']) ? $m['options'] : '';
-
-        if (isset($field->type)) {
-            if (isset($field->options)) {
-                $field->value = $field->options;
-                $field->options = null;
-            } else {
-                $field->value = null;
-            }
-        } else {
-            $field->type = 'raw';
-        }
-        
-        $type = $this->get_type($field->type);
-
-        return $type ? $type->get($post_id, $field->value) : null;
-    }
-
     public function init($args, $assoc_args)
     {
         if (!function_exists('acf_get_field_groups')) {
             $this->error('ACF is not loaded.');
         }
         $this->post_type = $assoc_args['post-type'];
+        
+        // parse / initialize connections
+        foreach ($this->connections as $key => $connection) {
+            $this->connections[$key] = $this->field_parser->parse_value($connection);
+        }
     }
 
     /**
@@ -78,14 +44,19 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
      */
     public function generate($post_id, $field)
     {
-        $field_object = $this->get_field_object($field, $post_id);
-        if (!$field_object) {
-            $this->error(sprintf('ACF: field test not found for post %s of type %s', $post_id, $this->post_type));
+        $acf_field_object = $this->get_acf_field_object($field, $post_id);
+        if (!$acf_field_object) {
+            $this->error(sprintf(
+                'ACF: field %s not found for post %s of type %s',
+                $field->name,
+                $post_id,
+                $this->post_type
+            ));
         }
 
         update_field(
             $field->name,
-            $this->populate($post_id, $field_object),
+            $this->populate($post_id, $acf_field_object),
             $post_id
         );
     }
@@ -103,19 +74,21 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
 
     /**
      * @param integer $post_id
-     * @param array $field_object
+     * @param array $acf_field_object
+     * @return mixed
      */
-    private function populate($post_id, $field_object)
+    private function populate($post_id, $acf_field_object)
     {
-        switch ($field_object['type']) {
+        $acf_field_type = $acf_field_object['type'];
+        switch ($acf_field_type) {
             case 'tab':
             case 'message':
                 return null;
             case 'flexible_content':
                 $rows = [];
-                $layouts = $field_object['layouts'];
+                $layouts = $acf_field_object['layouts'];
 
-                $count = $this->get_rand_count($field_object, floor(1.6 * count($layouts)));
+                $count = $this->get_rand_count($acf_field_object, floor(1.6 * count($layouts)));
                 for ($i = 0; $i < $count; ++$i) {
                     $layout = $layouts[array_rand($layouts)];
                     $row = [];
@@ -131,10 +104,10 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
                 return $rows;
             case 'repeater':
                 $rows = [];
-                $count = $this->get_rand_count($field_object, 8);
+                $count = $this->get_rand_count($acf_field_object, 8);
                 for ($i = 0; $i < $count; ++$i) {
                     $row = [];
-                    foreach ($field_object['sub_fields'] as $sub_field) {
+                    foreach ($acf_field_object['sub_fields'] as $sub_field) {
                         $value = $this->populate($post_id, $sub_field);
                         if ($value) {
                             $row[$sub_field['name']] = $value;
@@ -146,16 +119,26 @@ class AcfHandler implements HandlerInterface, Initialized, UseTypesInterface
             case 'selection':
             case 'checkbox':
             case 'radio':
-                $choices = $field_object['choices'];
+                $choices = $acf_field_object['choices'];
                 return $choices[array_rand($choices)];
             case 'number':
-                return $this->get_rand_count($field_object, 1000);
+                return $this->get_rand_count($acf_field_object, 1000);
             default:
-                return $this->type_get($post_id, $field_object['type']);
+                if (array_key_exists($acf_field_type, $this->connections)) {
+                    return ($this->connections[$acf_field_type])();
+                }
+                else {
+                    return null;
+                }
         }
     }
 
-    private function get_field_object($field, $post_id = null)
+    /**
+     * @param Field $field
+     * @param integer $post_id
+     * @return array|null The ACF field object if found
+     */
+    private function get_acf_field_object($field, $post_id)
     {
         /** @noinspection PhpUndefinedFunctionInspection */
         $groups = acf_get_field_groups([

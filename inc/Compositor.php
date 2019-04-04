@@ -35,7 +35,7 @@ use WP_CLI\SynopsisParser;
 class Compositor
 {
     use OutputTrait;
-    
+
     public static function instance()
     {
         static $instance = null;
@@ -54,19 +54,16 @@ class Compositor
         try {
             $containerBuilder = new ContainerBuilder();
             $this->container = $containerBuilder;
-            
+
             $loader = new YamlFileLoader($containerBuilder, new FileLocator(dirname($config_file)));
             $loader->load(basename($config_file));
+
+            // configure and inject field parser
+            $containerBuilder->addCompilerPass(new FieldParserPass());
 
             // inject CLI arguments
             $containerBuilder->addCompilerPass(new InitializePass());
 
-            // inject handlers
-            $containerBuilder->addCompilerPass(new UseHandlersPass());
-            
-            // inject types
-            $containerBuilder->addCompilerPass(new UseTypesPass());
-            
             $containerBuilder->compile(true);
 
             // add commands
@@ -140,10 +137,12 @@ class Compositor
         ));
     }
 
-    private function extend_command_options(&$options, DocParser $doc,
+    private function extend_command_options(
+        &$options,
+        DocParser $doc,
         /** @noinspection PhpUnusedParameterInspection */
-        $class)
-    {
+        $class
+    ) {
         foreach ($this->get_options_from_doc($doc) as $name => $option) {
             if (!isset($options[$name])) {
                 $options[$name] = $option;
@@ -179,16 +178,17 @@ class Compositor
 
         try {
             $service = $this->container->get($subcommand->get_name());
-            if ($service instanceof UseTypesInterface && is_array($service->get_types())) {
-                foreach ($service->get_types() as $type_id => $type_instance) {
+            if ($service instanceof UseFieldParserInterface) {
+                $field_parser = $service->get_field_parser();
+
+                foreach ($field_parser->get_generators() as $type_id => $type_instance) {
                     $type_class = get_class($type_instance);
                     $type_doc = $this->get_class_doc($type_instance);
                     $this->extend_command_options($options, $type_doc, $type_class);
                     $this->extend_command_longdesc($longdesc, $type_doc, $type_class);
                 }
-            }
-            if ($service instanceof UseHandlersInterface && is_array($service->get_handlers())) {
-                foreach ($service->get_handlers() as $handler_id => $handler_instance) {
+
+                foreach ($field_parser->get_handlers() as $handler_id => $handler_instance) {
                     $handler_class = get_class($handler_instance);
                     $handler_doc = $this->get_class_doc($handler_instance);
                     $this->extend_command_options($options, $handler_doc, $handler_class);

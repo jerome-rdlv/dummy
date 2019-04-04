@@ -30,7 +30,7 @@ use GuzzleHttp\Exception\GuzzleException;
  * ---
  *
  */
-class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
+class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Initialized
 {
     const API_IMAGE_URL = 'https://api.unsplash.com/photos/random';
     const API_IMAGE_DESC = '<a href="%1$s">Photo</a> by ' .
@@ -120,13 +120,7 @@ class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
 //        }
     }
 
-    /**
-     * @param $post_id
-     * @param $options
-     * @return mixed|string|\WP_Error
-     * @throws Exception
-     */
-    public function get($post_id, $options)
+    public function get($options, $post_id = null)
     {
         if ($this->images_index >= count($this->images_data)) {
             // load more images
@@ -139,9 +133,6 @@ class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
 
-    /**
-     * @param $options
-     */
     private function load_images()
     {
         $images_count = count($this->images_data);
@@ -152,7 +143,7 @@ class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
         }
 
         if (!$this->api_access) {
-            $this->error('To use image type, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
+            $this->error('To use Unsplash image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
         }
 
         try {
@@ -187,7 +178,7 @@ class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
 
             for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
                 $this->images_data[] = (object)[
-                    'url'  => $images[$i]->urls->raw .'&w=1200&h=1200&dummy.jpg',
+                    'url'  => $images[$i]->urls->raw . '&w=1200&h=1200&dummy.jpg',
                     'desc' => sprintf(
                         self::API_IMAGE_DESC,
                         $images[$i]->links->html,
@@ -202,6 +193,7 @@ class Unsplash extends AbstractTypeImage implements TypeInterface, Initialized
         }
     }
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     private function get_image_total()
     {
         if ($this->images_total === null) {

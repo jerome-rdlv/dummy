@@ -4,10 +4,8 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-class MetaHandler implements HandlerInterface, Initialized, UseTypesInterface
+class MetaHandler implements HandlerInterface, Initialized
 {
-    use UseTypesTrait;
-
     private $post_type;
 
     /**
@@ -26,13 +24,10 @@ class MetaHandler implements HandlerInterface, Initialized, UseTypesInterface
      */
     public function generate($post_id, $field)
     {
-        $type = $this->get_type($field->type);
-        if ($type) {
-            update_post_meta(
-                $post_id,
-                $field->name,
-                $type->get($post_id, $field->value)
-            );
-        }
+        update_post_meta(
+            $post_id,
+            $field->name,
+            $field->get_value()
+        );
     }
 }

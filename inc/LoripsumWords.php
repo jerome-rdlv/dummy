@@ -4,33 +4,29 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-class LoripsumWords implements TypeInterface
+class LoripsumWords implements GeneratorInterface, UseFieldParserInterface
 {
-    use OutputTrait;
-    
+    use UseFieldParserTrait, OutputTrait;
+
     const TEXT_START = 8;
-    
+
     /** @var Loripsum */
     private $loripsum;
-    
+
     public function __construct(Loripsum $loripsum)
     {
         $this->loripsum = $loripsum;
     }
 
-    /**
-     * @param $value
-     * @return mixed
-     */
-    public function get($post_id, $options)
+    public function get($options, $post_id = null)
     {
-        list($min, $max) = explode(':', $options);
+        list($min, $max) = $options;
 
         if (!$max) {
             return '';
         }
-        
-        $raw = $this->loripsum->get($post_id, '1/plaintext');
+
+        $raw = $this->loripsum->get([1, 'plaintext']);
         $words = explode(' ', preg_replace('/[^a-z0-9]+/i', ' ', $raw));
         return ucfirst(strtolower(implode(' ', array_slice(
             $words,

@@ -4,6 +4,8 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
+
 class MetaHandler implements HandlerInterface, Initialized
 {
     private $post_type;
@@ -21,13 +23,14 @@ class MetaHandler implements HandlerInterface, Initialized
      * @param integer $post_id
      * @param Field $field
      * @return void
+     * @throws Exception
      */
     public function generate($post_id, $field)
     {
         update_post_meta(
             $post_id,
             $field->name,
-            $field->get_value()
+            $field->get_value($post_id)
         );
     }
 }

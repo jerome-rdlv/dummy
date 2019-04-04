@@ -4,11 +4,13 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
+
 class Field
 {
     /** @var string Alias used on CLI to target the field */
     public $alias;
-    
+
     /** @var string Full field identification, with handler and name */
     public $key;
 
@@ -25,16 +27,21 @@ class Field
      * @var GeneratorCall $callback Field value
      */
     public $callback;
-    
+
     public function generate($post_id)
     {
         if ($this->handler) {
             $this->handler->generate($post_id, $this);
         }
     }
-    
-    public function get_value()
+
+    /**
+     * @param integer|null $post_id
+     * @return mixed
+     * @throws Exception
+     */
+    public function get_value($post_id = null)
     {
-        return ($this->callback)();
+        return $this->callback->get($post_id);
     }
 }

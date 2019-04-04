@@ -4,6 +4,7 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
 use WP_CLI;
 
 class CommandGenerate extends AbstractCommand implements CommandInterface, UseFieldParserInterface
@@ -72,7 +73,7 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
      * [<fields>...]
      * : Fields to generate
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __invoke($args, $assoc_args)
     {
@@ -85,7 +86,7 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function run()
     {
@@ -104,8 +105,7 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
                 if ($field->handler) {
                     return false;
                 } elseif (!in_array($field->name, self::AUTHORIZED_FIELDS)) {
-                    $this->error(sprintf('Bad field name: %s', $field->name));
-                    exit;
+                    throw new Exception(sprintf('Bad field name: %s', $field->name));
                 } else {
                     return $field->get_value();
                 }

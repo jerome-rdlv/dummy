@@ -17,7 +17,7 @@ class CommandClear extends AbstractCommand implements CommandInterface
      *
      * [--post-type=<post-type>]
      * : The type of post to generate
-     *
+     * 
      */
     public function __invoke($args, $assoc_args)
     {

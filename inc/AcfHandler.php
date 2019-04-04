@@ -4,6 +4,8 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
+
 /**
  * Populate ACF field
  */
@@ -15,7 +17,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
 
     /**
      * Connections between ACF field types and values
-     * @var array
+     * @var GeneratorCall[]
      */
     private $connections;
 
@@ -41,6 +43,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
      * @param integer $post_id
      * @param Field $field
      * @return void
+     * @throws Exception
      */
     public function generate($post_id, $field)
     {
@@ -61,7 +64,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
         );
     }
 
-    private function get_rand_count($field_object, $max, $min = 0)
+    private function get_rand_count($field_object, $max, $min = 1)
     {
         return rand(
             $field_object['min'] ? $field_object['min'] : $min,
@@ -76,6 +79,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
      * @param integer $post_id
      * @param array $acf_field_object
      * @return mixed
+     * @throws Exception
      */
     private function populate($post_id, $acf_field_object)
     {
@@ -125,7 +129,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
                 return $this->get_rand_count($acf_field_object, 1000);
             default:
                 if (array_key_exists($acf_field_type, $this->connections)) {
-                    return ($this->connections[$acf_field_type])();
+                    return $this->connections[$acf_field_type]->get($post_id);
                 }
                 else {
                     return null;

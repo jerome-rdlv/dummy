@@ -21,14 +21,14 @@ class GeneratorCall
     }
 
     /**
-     * @param array $context
+     * @param integer|null $post_id
      * @return mixed
      * @throws Exception
      */
-    public function __invoke($context = [])
+    public function get($post_id = null)
     {
         if ($this->generator) {
-            return $this->generator->get($this->options, $context);
+            return $this->generator->get($this->options, $post_id);
         }
         else {
             // raw value

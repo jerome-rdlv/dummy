@@ -12,8 +12,6 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class Loripsum implements GeneratorInterface
 {
-    use OutputTrait;
-    
     const API_HTML_URL = 'https://loripsum.net/api/%s';
 
     public function get($options, $post_id = null)
@@ -30,11 +28,11 @@ class Loripsum implements GeneratorInterface
             $client = new Client();
             $response = $client->request('GET', sprintf(self::API_HTML_URL, $query));
             if ($response->getStatusCode() !== 200) {
-                $this->error('Exception loading html from API: ' . $response->getReasonPhrase());
+                throw new Exception('Exception loading html from API: ' . $response->getReasonPhrase());
                 exit(1);
             }
         } catch (GuzzleException $e) {
-            $this->error('Exception loading html from API: ' . $e->getMessage());
+            throw new Exception('Exception loading html from API: ' . $e->getMessage());
             exit(1);
         }
 

@@ -8,7 +8,7 @@ use Exception;
 
 class MetaHandler implements HandlerInterface, Initialized
 {
-    private $post_type;
+    private $post_type = null;
 
     /**
      * @param $assoc_args
@@ -16,7 +16,9 @@ class MetaHandler implements HandlerInterface, Initialized
      */
     public function init($args, $assoc_args)
     {
-        $this->post_type = $assoc_args['post-type'];
+        if (!empty($assoc_args['post-type'])) {
+            $this->post_type = $assoc_args['post-type'];
+        }
     }
 
     /**

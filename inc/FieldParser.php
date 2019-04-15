@@ -9,8 +9,6 @@ use Symfony\Component\Yaml\Parser;
 
 class FieldParser
 {
-    use OutputTrait;
-
     // @formatter:off
     const ARG_PREG = '/^(?P<key>[^=]+)(=(?P<value>.*))?$/';
     const FIELD_KEY_PREG = '/^' .
@@ -119,7 +117,7 @@ class FieldParser
         if (preg_match(self::ARG_PREG, $arg, $m, PREG_UNMATCHED_AS_NULL)) {
             return $this->get_field($m['key'], isset($m['value']) ? $m['value'] : '');
         } else {
-            $this->error(sprintf('Argument bad format: %s', $arg));
+            throw new Exception(sprintf('Argument bad format: %s', $arg));
             exit;
         }
     }
@@ -150,7 +148,7 @@ class FieldParser
             $field->handler = empty($m['handler']) ? null : $this->handlers[$m['handler']];
             $field->name = $m['name'];
         } else {
-            $this->error(sprintf('Field key regex error (blame the dev, this should never happen).'));
+            throw new Exception(sprintf('Field key regex error (blame the dev, this should never happen).'));
         }
         return $field;
     }

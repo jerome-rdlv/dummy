@@ -5,16 +5,17 @@ namespace Rdlv\WordPress\Dummy;
 
 
 use WP_CLI;
-use WP_CLI\ExitException;
 
-trait OutputTrait
+trait ErrorTrait
 {
-    function error($message)
+    public function error($message)
     {
         echo "\n";
         try {
             WP_CLI::error($message);
-        } catch (ExitException $e) {
+        } catch (WP_CLI\ExitException $e) {
+            echo $e->getMessage();
         }
+        exit(1);
     }
 }

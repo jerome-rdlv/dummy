@@ -31,7 +31,7 @@ use WP_CLI\SynopsisParser;
  */
 class Compositor
 {
-    use OutputTrait;
+    use ErrorTrait;
 
     public static function instance()
     {

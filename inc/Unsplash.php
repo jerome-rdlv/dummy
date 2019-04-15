@@ -143,7 +143,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         }
 
         if (!$this->api_access) {
-            $this->error('To use Unsplash image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
+            throw new Exception('To use Unsplash image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
         }
 
         try {
@@ -166,14 +166,14 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                $this->error('Exception loading images from API: ' . $response->getReasonPhrase());
+                throw new Exception('Exception loading images from API: ' . $response->getReasonPhrase());
             }
 
             /** @noinspection PhpComposerExtensionStubsInspection */
             $responseBody = $response->getBody()->getContents();
             $images = json_decode($responseBody);
             if (!$images) {
-                $this->error('Exception loading images from API: json_decode returned null');
+                throw new Exception('Exception loading images from API: json_decode returned null');
             }
 
             for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
@@ -189,7 +189,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             }
 
         } catch (GuzzleException $e) {
-            $this->error('Exception loading images from API: ' . $e->getMessage());
+            throw new Exception('Exception loading images from API: ' . $e->getMessage());
         }
     }
 
@@ -205,12 +205,12 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                     ]),
                 ]);
                 if ($response->getStatusCode() !== 200) {
-                    $this->error('Exception loading total from image from API: ' . $response->getReasonPhrase());
+                    throw new Exception('Exception loading total from image from API: ' . $response->getReasonPhrase());
                 }
                 /** @noinspection PhpComposerExtensionStubsInspection */
                 $this->images_total = json_decode($response->getBody())->totalHits;
             } catch (GuzzleException $e) {
-                $this->error('Exception loading total from image API: ' . $e->getMessage());
+                throw new Exception('Exception loading total from image API: ' . $e->getMessage());
             }
         }
         return $this->images_total;

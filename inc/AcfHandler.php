@@ -11,7 +11,7 @@ use Exception;
  */
 class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initialized
 {
-    use UseFieldParserTrait, OutputTrait;
+    use UseFieldParserTrait;
 
     private $post_type;
 
@@ -29,9 +29,11 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
     public function init($args, $assoc_args)
     {
         if (!function_exists('acf_get_field_groups')) {
-            $this->error('ACF is not loaded.');
+            throw new Exception('ACF is not loaded.');
         }
-        $this->post_type = $assoc_args['post-type'];
+        if (!empty($assoc_args['post-type'])) {
+            $this->post_type = $assoc_args['post-type'];
+        }
         
         // parse / initialize connections
         foreach ($this->connections as $key => $connection) {

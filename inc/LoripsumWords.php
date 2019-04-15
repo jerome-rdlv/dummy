@@ -6,7 +6,7 @@ namespace Rdlv\WordPress\Dummy;
 
 class LoripsumWords implements GeneratorInterface, UseFieldParserInterface
 {
-    use UseFieldParserTrait, OutputTrait;
+    use UseFieldParserTrait;
 
     const TEXT_START = 8;
 

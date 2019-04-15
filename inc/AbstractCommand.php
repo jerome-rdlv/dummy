@@ -4,9 +4,11 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use WP_CLI;
+
 abstract class AbstractCommand implements CommandInterface
 {
-    use OutputTrait;
+    use ErrorTrait;
     
     /** @var Initialized[] */
     private $registered_services = [];
@@ -28,7 +30,6 @@ abstract class AbstractCommand implements CommandInterface
             $this->run();
         } catch (\Exception $e) {
             $this->error($e->getMessage());
-            exit(1);
         }
     }
 }

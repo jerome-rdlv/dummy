@@ -9,7 +9,7 @@ use WP_CLI;
 
 class CommandGenerate extends AbstractCommand implements CommandInterface, UseFieldParserInterface
 {
-    use UseFieldParserTrait, OutputTrait;
+    use UseFieldParserTrait;
 
     const AUTHORIZED_FIELDS = [
         'post_author',
@@ -91,7 +91,7 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     protected function run()
     {
         if (!function_exists('wp_insert_post') || !function_exists('wp_update_post')) {
-            $this->error('WordPress admin must be loaded');
+            throw new Exception('WordPress admin must be loaded');
             exit(1);
         }
 

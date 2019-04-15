@@ -8,8 +8,6 @@ use Exception;
 
 abstract class AbstractImageGenerator
 {
-    use OutputTrait;
-
     private $images = [];
 
     /**

@@ -8,7 +8,7 @@ use WP_CLI;
 
 class CommandClear extends AbstractCommand implements CommandInterface
 {
-    private $post_type;
+    private $post_type = null;
 
     /**
      * Clear the dummy content
@@ -21,7 +21,9 @@ class CommandClear extends AbstractCommand implements CommandInterface
      */
     public function __invoke($args, $assoc_args)
     {
-        $this->post_type = $assoc_args['post-type'];
+        if (!empty($assoc_args['post-type'])) {
+            $this->post_type = $assoc_args['post-type'];
+        }
         $this->init($args, $assoc_args);
     }
 

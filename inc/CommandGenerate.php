@@ -9,7 +9,7 @@ use WP_CLI;
 
 /**
  * Generate the dummy content
- * 
+ *
  * This command create posts with random content. It is possible to specify generation
  * rules for specific fields like post_status, post_excerpt, or thumbnail through
  * the meta handler.
@@ -76,7 +76,7 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     {
         $this->defaults = $defaults;
     }
-    
+
     protected function validate($args, $assoc_args)
     {
         $this->count = $assoc_args['count'];
@@ -104,8 +104,20 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
         }
     }
 
+    private function install_companion()
+    {
+        if (defined('WPMU_PLUGIN_DIR')) {
+            $dest = WPMU_PLUGIN_DIR . '/dummy.php';
+            if (!file_exists($dest)) {
+                copy(dirname(__DIR__) . '/dummy.php', $dest);
+            }
+        }
+    }
+
     protected function run($args, $assoc_args)
     {
+        $this->install_companion();
+
         $this->fields = $this->get_fields($args, $assoc_args);
 
         // create posts

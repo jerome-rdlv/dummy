@@ -36,6 +36,17 @@ class CommandClear extends AbstractCommand implements CommandInterface
         }
     }
 
+    private function remove_companion()
+    {
+        if (defined('WPMU_PLUGIN_DIR')) {
+            $local = dirname(__DIR__) .'/dummy.php';
+            $dest = WPMU_PLUGIN_DIR . '/dummy.php';
+            if (file_exists($dest) && file_get_contents($local) === file_get_contents($dest)) {
+                unlink($dest);
+            }
+        }
+    }
+
     protected function run($args, $assoc_args)
     {
         global $wpdb;
@@ -61,6 +72,11 @@ class CommandClear extends AbstractCommand implements CommandInterface
                 }
             }
         }
+        
+        if (empty($this->post_type)) {
+            $this->remove_companion();
+        }
+        
         WP_CLI::success(sprintf('deleted %s posts', count($rows)));
     }
 }

@@ -142,6 +142,9 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
 
+    /**
+     * @throws Exception
+     */
     private function load_images()
     {
         $images_count = count($this->images_data);
@@ -155,16 +158,16 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
             throw new Exception('To use Pixabay image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
         }
 
+        $client = new Client();
+        $per_page = max(
+        // this is a hard min, API errors otherwise
+            self::API_IMAGE_PAGE_SIZE_MIN,
+            min(
+                $page_max_size,
+                rand(self::API_IMAGE_PAGE_SIZE_MIN, self::API_IMAGE_PAGE_SIZE_MAX)
+            )
+        );
         try {
-            $client = new Client();
-            $per_page = max(
-            // this is a hard min, API errors otherwise
-                self::API_IMAGE_PAGE_SIZE_MIN,
-                min(
-                    $page_max_size,
-                    rand(self::API_IMAGE_PAGE_SIZE_MIN, self::API_IMAGE_PAGE_SIZE_MAX)
-                )
-            );
             $response = $client->request('GET', self::API_IMAGE_URL, [
                 'query' => array_replace([], $this->images_params, [
                     'per_page' => $per_page,
@@ -173,33 +176,37 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
                 ]),
             ]);
 
-            if ($response->getStatusCode() !== 200) {
-                $this->error('Exception loading images from API: ' . $response->getReasonPhrase());
-            }
-
-            /** @noinspection PhpComposerExtensionStubsInspection */
-            $images = json_decode($response->getBody())->hits;
-            if (!$images) {
-                throw new Exception('Exception loading images from API: json_decode returned null');
-            }
-
-            for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
-                $this->images_data[] = (object)[
-                    'url'  => $images[$i]->largeImageURL,
-                    'desc' => sprintf(
-                        self::API_IMAGE_DESC,
-                        $images[$i]->pageURL,
-                        $images[$i]->user_id,
-                        $images[$i]->user
-                    ),
-                ];
-            }
-
         } catch (GuzzleException $e) {
             throw new Exception('Exception loading images from API: ' . $e->getMessage());
         }
+
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('Exception loading images from API: ' . $response->getReasonPhrase());
+        }
+
+        /** @noinspection PhpComposerExtensionStubsInspection */
+        $images = json_decode($response->getBody())->hits;
+        if (!$images) {
+            throw new Exception('Exception loading images from API: json_decode returned null');
+        }
+
+        for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
+            $this->images_data[] = (object)[
+                'url'  => $images[$i]->largeImageURL,
+                'desc' => sprintf(
+                    self::API_IMAGE_DESC,
+                    $images[$i]->pageURL,
+                    $images[$i]->user_id,
+                    $images[$i]->user
+                ),
+            ];
+        }
     }
 
+    /**
+     * @return integer
+     * @throws Exception
+     */
     private function get_image_total()
     {
         if ($this->images_total === null) {

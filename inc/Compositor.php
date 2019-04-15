@@ -10,7 +10,6 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use WP_CLI;
-use WP_CLI\Dispatcher\Subcommand;
 use WP_CLI\DocParser;
 use WP_CLI\SynopsisParser;
 
@@ -65,17 +64,44 @@ class Compositor
 
             // add commands
             foreach ($containerBuilder->findTaggedServiceIds('app.command') as $service_id => $tags) {
-                // extend documentation
+                // extend composite command documentation
                 $this->add_hook($command_name, $service_id);
 
                 $command = $containerBuilder->get($service_id);
                 if ($command instanceof CommandInterface) {
-                    WP_CLI::add_command($command_name . ' ' . $service_id, $command);
+                    WP_CLI::add_command(
+                        $command_name . ' ' . $service_id,
+                        $command,
+                        $this->get_command_doc($service_id, $command)
+                    );
                 }
             }
+
         } catch (Exception $e) {
             die($e->getMessage());
         }
+    }
+
+    /**
+     * @param string $service_id
+     * @param CommandInterface $command
+     * @return array
+     * @throws ReflectionException
+     */
+    private function get_command_doc($service_id, $command)
+    {
+        $reflection = new ReflectionClass($command);
+        $dp = new DocParser($reflection->getDocComment());
+
+        $synopsis = $dp->get_synopsis();
+        if (empty($synopsis)) {
+            $synopsis = $this->get_options_from_doc($dp);
+        }
+        return $this->get_extended_doc($service_id, [
+            'shortdesc' => $dp->get_shortdesc(),
+            'longdesc'  => $dp->get_longdesc(),
+            'synopsis'  => $synopsis,
+        ]);
     }
 
     public function add_hook($command_name, $subcommand_name)
@@ -92,10 +118,10 @@ class Compositor
                 $command->set_shortdesc($docparser->get_shortdesc());
                 $command->set_longdesc($docparser->get_longdesc());
             }
-
-            /** @var Subcommand $subcommand */
-            $subcommand = $command->get_subcommands()[$subcommand_name];
-            $this->extend_command_doc($subcommand);
+//
+//            /** @var Subcommand $subcommand */
+//            $subcommand = $command->get_subcommands()[$subcommand_name];
+//            $this->extend_command_doc($subcommand);
         });
     }
 
@@ -126,7 +152,7 @@ class Compositor
     {
         $synopsis = $doc->get_synopsis();
         if (!$synopsis) {
-            preg_match_all('/(.+?)[\r\n]+:/', $doc->get_longdesc(), $matches);
+            preg_match_all('/(.+?)[\r\n]+: /', $doc->get_longdesc(), $matches);
             $synopsis = implode(' ', $matches[1]);
         }
         return $this->set_option_name_as_key(array_values(
@@ -136,9 +162,7 @@ class Compositor
 
     private function extend_command_options(
         &$options,
-        DocParser $doc,
-        /** @noinspection PhpUnusedParameterInspection */
-        $class
+        DocParser $doc
     ) {
         foreach ($this->get_options_from_doc($doc) as $name => $option) {
             if (!isset($options[$name])) {
@@ -154,9 +178,9 @@ class Compositor
         }
     }
 
-    private function extend_command_longdesc(&$longdesc, DocParser $doc, $class)
+    private function extend_command_longdesc(&$longdesc, DocParser $doc, $class, $id)
     {
-        $class_longdesc = trim($doc->get_longdesc());
+        $class_longdesc = trim(trim($doc->get_shortdesc()) . "\n\n" . trim($doc->get_longdesc()));
         if ($class_longdesc) {
             $class_path = explode('\\', $class);
             $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
@@ -168,34 +192,42 @@ class Compositor
         }
     }
 
-    private function extend_command_doc(Subcommand $subcommand)
+    /**
+     * Extend command doc with generators and handlers options and descriptions.
+     * @param string $service_id
+     * @param $doc
+     * @return array Extended doc
+     */
+    private function get_extended_doc($service_id, $doc)
     {
-        $options = $this->set_option_name_as_key(SynopsisParser::parse($subcommand->get_synopsis()));
-        $longdesc = $subcommand->longdesc;
+        $options = $this->set_option_name_as_key($doc['synopsis']);
+        $longdesc = $doc['longdesc'];
 
         try {
-            $service = $this->container->get($subcommand->get_name());
+            $service = $this->container->get($service_id);
             if ($service instanceof UseFieldParserInterface) {
                 $field_parser = $service->get_field_parser();
 
-                foreach ($field_parser->get_generators() as $type_id => $type_instance) {
+                foreach ($field_parser->get_generators() as $generator_id => $type_instance) {
                     $type_class = get_class($type_instance);
                     $type_doc = $this->get_class_doc($type_instance);
-                    $this->extend_command_options($options, $type_doc, $type_class);
-                    $this->extend_command_longdesc($longdesc, $type_doc, $type_class);
+                    $this->extend_command_options($options, $type_doc);
+                    $this->extend_command_longdesc($longdesc, $type_doc, $type_class, $generator_id);
                 }
 
                 foreach ($field_parser->get_handlers() as $handler_id => $handler_instance) {
                     $handler_class = get_class($handler_instance);
                     $handler_doc = $this->get_class_doc($handler_instance);
-                    $this->extend_command_options($options, $handler_doc, $handler_class);
-                    $this->extend_command_longdesc($longdesc, $handler_doc, $handler_class);
+                    $this->extend_command_options($options, $handler_doc);
+                    $this->extend_command_longdesc($longdesc, $handler_doc, $handler_class, $handler_id);
                 }
             }
         } catch (Exception $e) {
         }
 
-        $subcommand->set_synopsis(SynopsisParser::render($options));
-        $subcommand->set_longdesc($longdesc);
+        $doc['synopsis'] = SynopsisParser::render($options);
+        $doc['longdesc'] = $longdesc;
+
+        return $doc;
     }
 }

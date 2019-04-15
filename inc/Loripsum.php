@@ -4,6 +4,7 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -29,11 +30,9 @@ class Loripsum implements GeneratorInterface
             $response = $client->request('GET', sprintf(self::API_HTML_URL, $query));
             if ($response->getStatusCode() !== 200) {
                 throw new Exception('Exception loading html from API: ' . $response->getReasonPhrase());
-                exit(1);
             }
         } catch (GuzzleException $e) {
             throw new Exception('Exception loading html from API: ' . $e->getMessage());
-            exit(1);
         }
 
         // replace out of range headings and return

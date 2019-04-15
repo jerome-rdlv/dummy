@@ -28,6 +28,10 @@ class Field
      */
     public $callback;
 
+    /**
+     * @param $post_id
+     * @throws Exception
+     */
     public function generate($post_id)
     {
         if ($this->handler) {

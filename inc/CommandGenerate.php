@@ -7,6 +7,30 @@ namespace Rdlv\WordPress\Dummy;
 use Exception;
 use WP_CLI;
 
+/**
+ * Generate the dummy content
+ * 
+ * This command create posts with random content. It is possible to specify generation
+ * rules for specific fields like post_status, post_excerpt, or thumbnail through
+ * the meta handler.
+ *
+ * ## GENERATE
+ *
+ * [--count=<count>]
+ * : Number of posts to generate
+ * ---
+ * default: 10
+ * ---
+ *
+ * [--post-type=<post-type>]
+ * : The type of post to generate
+ * ---
+ * default: post
+ * ---
+ *
+ * [<fields>...]
+ * : Fields to generate
+ */
 class CommandGenerate extends AbstractCommand implements CommandInterface, UseFieldParserInterface
 {
     use UseFieldParserTrait;
@@ -52,48 +76,37 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     {
         $this->defaults = $defaults;
     }
-
-    /**
-     * Generate the dummy content
-     *
-     * ## OPTIONS
-     *
-     * [--count=<count>]
-     * : Number of posts to generate
-     * ---
-     * default: 10
-     * ---
-     *
-     * [--post-type=<post-type>]
-     * : The type of post to generate
-     * ---
-     * default: post
-     * ---
-     *
-     * [<fields>...]
-     * : Fields to generate
-     *
-     * @throws Exception
-     */
-    public function __invoke($args, $assoc_args)
+    
+    protected function validate($args, $assoc_args)
     {
         $this->count = $assoc_args['count'];
         $this->post_type = $assoc_args['post-type'];
 
-        $this->fields = $this->get_fields($args, $assoc_args);
-
-        $this->init($args, $assoc_args);
-    }
-
-    /**
-     * @throws Exception
-     */
-    protected function run()
-    {
         if (!function_exists('wp_insert_post') || !function_exists('wp_update_post')) {
             throw new Exception('WordPress admin must be loaded');
-            exit(1);
         }
+
+        // validate parameters
+        if (!is_numeric($this->count) || $this->count < 1) {
+            throw new Exception(sprintf(
+                'Count must be a number greater than 0 (%s given).',
+                $this->count
+            ));
+        }
+
+        $post_types = get_post_types();
+        if (!in_array($this->post_type, $post_types)) {
+            throw new Exception(sprintf(
+                'Post type %s unknown, must be any of %s',
+                $this->post_type,
+                implode(', ', $post_types)
+            ));
+        }
+    }
+
+    protected function run($args, $assoc_args)
+    {
+        $this->fields = $this->get_fields($args, $assoc_args);
 
         // create posts
         $post_ids = [];
@@ -139,7 +152,10 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     }
 
     /**
+     * @param $args
+     * @param $assoc_args
      * @return array
+     * @throws Exception
      */
     private function get_fields($args, $assoc_args)
     {

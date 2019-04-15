@@ -9,15 +9,21 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
+ * Image generator based on Unsplash API
+ * 
+ * This generator get high quality images from Unsplash API, upload it to the
+ * media library, and return the resulting attachment id.
  *
  * You can go to https://pixabay.com/en/photos/ to setup your image selection.
  *
  * To get Unsplash API keys you must create an account on the
- * service https://unsplash.com/join and create an app.
+ * service (https://unsplash.com/join) and create an app.
  *
  * [--unsplash-access-key=<key>]
+ * : API access key
  *
  * [--unsplash-secret-key=<key>]
+ * : API secret key
  *
  * [--unsplash-options=<defaults>]
  * : Options for image query. Possible values are:
@@ -133,6 +139,9 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
 
+    /**
+     * @throws Exception
+     */
     private function load_images()
     {
         $images_count = count($this->images_data);
@@ -193,7 +202,10 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         }
     }
 
-    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * @return integer
+     * @throws Exception
+     */
     private function get_image_total()
     {
         if ($this->images_total === null) {

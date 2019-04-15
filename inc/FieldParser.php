@@ -39,7 +39,6 @@ class FieldParser
 
 
     private $aliases;
-    private $defaults;
 
     private $field_key_preg = null;
     private $field_value_preg = null;
@@ -112,16 +111,26 @@ class FieldParser
         return $this->generators;
     }
 
+    /**
+     * @param $arg
+     * @return Field
+     * @throws Exception
+     */
     public function parse_field($arg)
     {
         if (preg_match(self::ARG_PREG, $arg, $m, PREG_UNMATCHED_AS_NULL)) {
             return $this->get_field($m['key'], isset($m['value']) ? $m['value'] : '');
         } else {
             throw new Exception(sprintf('Argument bad format: %s', $arg));
-            exit;
         }
     }
 
+    /**
+     * @param $key
+     * @param $value
+     * @return Field
+     * @throws Exception
+     */
     public function get_field($key, $value)
     {
         $field = new Field();
@@ -139,6 +148,7 @@ class FieldParser
      * @param $key
      * @param Field $field
      * @return Field
+     * @throws Exception
      */
     private function parse_key($key, &$field)
     {
@@ -193,7 +203,7 @@ class FieldParser
         }
 
         $this->resolve_generators($value);
-        
+
         if (!$value instanceof GeneratorCall) {
             $value = new GeneratorCall(null, $value);
         }

@@ -8,6 +8,25 @@ use Exception;
 
 /**
  * Populate ACF field
+ * 
+ * ACF fields are filled with random content according to their type by default.
+ * 
+ * If a field is not found for the created post, an error will be thrown.
+ * 
+ * Complex types are populated recursively, for example Flex and Repeater.
+ * 
+ * Example:
+ * 
+ *      acf:description
+ * 
+ * If ACF field description is of type wysiwyg, it will be filled with random
+ * HTML content.
+ * 
+ *      acf:contents
+ * 
+ * If ACF field contents exists for the created post and is of type flex, a random
+ * number of blocs will be created with a random layout for each, and subfields of
+ * each bloc will also be populated.
  */
 class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initialized
 {
@@ -34,24 +53,18 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
         if (!empty($assoc_args['post-type'])) {
             $this->post_type = $assoc_args['post-type'];
         }
-        
+
         // parse / initialize connections
         foreach ($this->connections as $key => $connection) {
             $this->connections[$key] = $this->field_parser->parse_value($connection);
         }
     }
 
-    /**
-     * @param integer $post_id
-     * @param Field $field
-     * @return void
-     * @throws Exception
-     */
     public function generate($post_id, $field)
     {
         $acf_field_object = $this->get_acf_field_object($field, $post_id);
         if (!$acf_field_object) {
-            $this->error(sprintf(
+            throw new Exception(sprintf(
                 'ACF: field %s not found for post %s of type %s',
                 $field->name,
                 $post_id,
@@ -132,8 +145,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
             default:
                 if (array_key_exists($acf_field_type, $this->connections)) {
                     return $this->connections[$acf_field_type]->get($post_id);
-                }
-                else {
+                } else {
                     return null;
                 }
         }

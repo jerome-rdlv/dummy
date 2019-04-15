@@ -10,7 +10,6 @@ trait ErrorTrait
 {
     public function error($message)
     {
-        echo "\n";
         try {
             WP_CLI::error($message);
         } catch (WP_CLI\ExitException $e) {

@@ -30,7 +30,9 @@
         "psr-4": {
             "Rdlv\\WordPress\\Dummy\\": "inc/"
         },
-        "files": [ "command.php" ]
+        "files": [
+            "command.php"
+        ]
     },
     "require": {
         "php": ">=5.6",
@@ -45,6 +47,9 @@
         "wpackagist-plugin/advanced-custom-fields": ">=5.7"
     },
     "repositories": [
-        { "type": "composer", "url": "https://wpackagist.org" }
+        {
+            "type": "composer",
+            "url": "https://wpackagist.org"
+        }
     ]
 }

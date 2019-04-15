@@ -3,17 +3,17 @@
 
 namespace Rdlv\WordPress\Dummy;
 
-
-use Exception;
-
+/**
+ * Populate post meta
+ * 
+ * Example:
+ * 
+ *      meta:custom_field=html
+ */
 class MetaHandler implements HandlerInterface, Initialized
 {
     private $post_type = null;
 
-    /**
-     * @param $assoc_args
-     * @return void
-     */
     public function init($args, $assoc_args)
     {
         if (!empty($assoc_args['post-type'])) {
@@ -21,12 +21,6 @@ class MetaHandler implements HandlerInterface, Initialized
         }
     }
 
-    /**
-     * @param integer $post_id
-     * @param Field $field
-     * @return void
-     * @throws Exception
-     */
     public function generate($post_id, $field)
     {
         update_post_meta(

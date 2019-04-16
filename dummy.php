@@ -19,6 +19,7 @@ add_action('edit_form_after_title', function ($post) {
                     Edit anyway
                 </button>
             </p>
+            <!--suppress CssUnusedSymbol -->
             <style id="dummy-disabled-styles">
                 #titlediv,
                 #postdivrich,
@@ -26,17 +27,18 @@ add_action('edit_form_after_title', function ($post) {
                     transition: filter 300ms, opacity 300ms;
                 }
 
-                body:not(.dummy-enabled) #titlediv,
-                body:not(.dummy-enabled) #postdivrich,
-                body:not(.dummy-enabled) .postbox-container {
+                body.dummy-disabled #titlediv,
+                body.dummy-disabled #postdivrich,
+                body.dummy-disabled .postbox-container {
                     filter: grayscale(100%);
                     pointer-events: none;
                     opacity: .4;
                 }
             </style>
             <script>
+                document.body.classList.add('dummy-disabled');
                 document.getElementById('dummy-enable').addEventListener('click', function (e) {
-                    document.body.classList.add('dummy-enabled');
+                    document.body.classList.remove('dummy-disabled');
                     e.target.parentNode.parentNode.removeChild(e.target.parentNode);
                 });
             </script>

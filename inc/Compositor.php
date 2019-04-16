@@ -184,11 +184,11 @@ class Compositor
         if ($class_longdesc) {
             $class_path = explode('\\', $class);
             $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
-            $longdesc .= sprintf(
+            $longdesc .= preg_replace('/{id}/', $id, sprintf(
                 "\n\n## %s\n\n%s",
                 $title,
                 $class_longdesc
-            );
+            ));
         }
     }
 

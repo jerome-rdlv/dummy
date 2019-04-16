@@ -8,7 +8,7 @@ namespace Rdlv\WordPress\Dummy;
  * 
  * Example:
  * 
- *      meta:custom_field=html
+ *      {id}:custom_field=html
  */
 class MetaHandler implements HandlerInterface, Initialized
 {

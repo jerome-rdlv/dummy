@@ -34,6 +34,10 @@ use GuzzleHttp\Exception\GuzzleException;
  * ---
  * default: photo/horizontal/industry
  * ---
+ * 
+ * Example:
+ * 
+ *      thumb={id}:photo,places,blue,horizontal
  *
  */
 class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Initialized

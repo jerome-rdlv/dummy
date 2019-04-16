@@ -17,12 +17,12 @@ use Exception;
  * 
  * Example:
  * 
- *      acf:description
+ *      {id}:description
  * 
  * If ACF field description is of type wysiwyg, it will be filled with random
  * HTML content.
  * 
- *      acf:contents
+ *      {id}:contents
  * 
  * If ACF field contents exists for the created post and is of type flex, a random
  * number of blocs will be created with a random layout for each, and subfields of

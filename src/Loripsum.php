@@ -67,7 +67,33 @@ class Loripsum implements GeneratorInterface
 
     public function normalize($args)
     {
-        return $args;
+        $normalize = [];
+        
+        $numbers = [];
+        foreach ($args as $arg) {
+            if (is_numeric($arg)) {
+                $numbers[] = $arg;
+            }
+        }
+        if (count($numbers) === 1) {
+            $normalize[] = $numbers[0];
+        }
+        elseif (count($numbers) === 2) {
+            $normalize[] = rand($numbers[0], $numbers[1]);
+        }
+        elseif (count($numbers) > 2) {
+            throw new Exception(sprintf(
+                '%s numbers given but only one or two accepted.',
+                count($numbers)
+            ));
+        }
+        
+        foreach ($args as $arg) {
+            if (!is_numeric($arg)) {
+                $normalize[] = $arg;
+            }
+        }
+        return $normalize;
     }
 
     public function validate($args)

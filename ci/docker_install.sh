@@ -15,10 +15,11 @@ chmod +x /usr/local/bin/phpunit
 
 # Install mysql driver
 # Here you can install any other extension that you need
-docker-php-ext-install pdo_mysql zip
+docker-php-ext-install pdo_mysql
 
 # Install composer
 apt-get install wget zlib1g-dev -yqq
+docker-php-ext-install zip
 wget https://composer.github.io/installer.sig -O - -q | tr -d '\n' > installer.sig
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 php -r "if (hash_file('SHA384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"

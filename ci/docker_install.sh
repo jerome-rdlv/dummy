@@ -5,8 +5,6 @@
 
 set -xe
 
-# Install git (the php image doesn't have it) which is required by composer
-
 # Install composer
 apt-get update -yqq \
     && apt-get install -yqq \
@@ -17,6 +15,10 @@ apt-get update -yqq \
         zip \
     && docker-php-ext-configure zip --with-libzip \
     && docker-php-ext-install zip
+
+# Install Xdebug for code coverage
+pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
 wget https://composer.github.io/installer.sig -O - -q | tr -d '\n' > installer.sig
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

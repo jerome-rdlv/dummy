@@ -1,0 +1,13 @@
+before_script:
+    - bash ci/docker_install.sh > /dev/null
+    - bash ci/composer_install.sh > /dev/null
+
+test:7.2:
+    image: php:7.2
+    script:
+        - phpunit --configuration phpunit.xml
+
+test:7.3:
+    image: php:7.3
+    script:
+        - phpunit --configuration phpunit.xml

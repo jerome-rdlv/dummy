@@ -15,6 +15,5 @@ trait ErrorTrait
         } catch (WP_CLI\ExitException $e) {
             echo $e->getMessage();
         }
-        exit(1);
     }
 }

@@ -101,7 +101,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
         $this->api_key = $api_key;
     }
 
-    public function init($args, $assoc_args)
+    public function init_task($args, $assoc_args)
     {
         // image API key
         if (isset($assoc_args['pixabay-key'])) {
@@ -129,7 +129,18 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
         }
     }
 
-    public function get($options, $post_id = null)
+    public function normalize($args)
+    {
+        // TODO: Implement normalize() method.
+        return $args;
+    }
+
+    public function validate($args)
+    {
+        // TODO: Implement validate() method.
+    }
+    
+    public function get($args, $post_id = null)
     {
         if ($this->images_index >= count($this->images_data)) {
             // load more images

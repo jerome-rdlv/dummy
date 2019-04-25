@@ -16,6 +16,15 @@ use WP_CLI;
  *
  * ## GENERATE
  *
+ * [--tasks=<file>]
+ * : Tasks file
+ * ---
+ * default: dummy.yml
+ * ---
+ *
+ * [--no-tasks]
+ * : Do not read tasks file
+ *
  * [--count=<count>]
  * : Number of posts to generate
  * ---
@@ -28,10 +37,23 @@ use WP_CLI;
  * default: post
  * ---
  *
- * [<fields>...]
- * : Fields to generate
+ * [<rules>...]
+ * : Generation rules in the form field=options
+ *
+ * Following defaults are applied by command configuration:
+ *      - content=html:6,ul,h2,h3
+ *      - date=date:4 months ago,now
+ *      - thumb=image
+ *      - title=text:4,16
+ *      - status=publish
+ *      - author=''
+ *
+ * Aliases are available to target commons fields:
+ *      - content: post_content
+ *      - thumb: meta:_thumbnail_id
+ *
  */
-class CommandGenerate extends AbstractCommand implements CommandInterface, UseFieldParserInterface
+class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
 {
     use UseFieldParserTrait;
 
@@ -67,11 +89,6 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
     /** @var FieldParser */
     private $field_parser;
 
-    public function __construct($defaults)
-    {
-        $this->defaults = $defaults;
-    }
-
     public function set_defaults($defaults)
     {
         $this->defaults = $defaults;
@@ -79,28 +96,30 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
 
     protected function validate($args, $assoc_args)
     {
-        $this->count = $assoc_args['count'];
-        $this->post_type = $assoc_args['post-type'];
-
         if (!function_exists('wp_insert_post') || !function_exists('wp_update_post')) {
             throw new Exception('WordPress admin must be loaded');
         }
 
         // validate parameters
-        if (!is_numeric($this->count) || $this->count < 1) {
+        if (!is_numeric($assoc_args['count']) || $assoc_args['count'] < 1) {
             throw new Exception(sprintf(
                 'Count must be a number greater than 0 (%s given).',
-                $this->count
+                $assoc_args['count']
             ));
         }
 
         $post_types = get_post_types();
-        if (!in_array($this->post_type, $post_types)) {
+        if (!in_array($assoc_args['post-type'], $post_types)) {
             throw new Exception(sprintf(
                 'Post type %s unknown, must be any of %s',
-                $this->post_type,
+                $assoc_args['post-type'],
                 implode(', ', $post_types)
             ));
+        }
+
+        $fields = $this->get_fields($args, $assoc_args);
+        if (empty($fields)) {
+            throw new Exception('No fields defined, this task is empty.');
         }
     }
 
@@ -116,6 +135,9 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
 
     protected function run($args, $assoc_args)
     {
+        $this->count = $assoc_args['count'];
+        $this->post_type = $assoc_args['post-type'];
+
         $this->install_companion();
 
         $this->fields = $this->get_fields($args, $assoc_args);
@@ -174,19 +196,31 @@ class CommandGenerate extends AbstractCommand implements CommandInterface, UseFi
         $fields = [];
 
         // parse args
-        foreach ($args as $arg) {
-            $field = $this->field_parser->parse_field($arg);
-            $fields[$field->key] = $field;
+        if (is_array($args)) {
+            foreach ($args as $key => $arg) {
+                if (is_string($key)) {
+                    $field = $this->field_parser->get_field($key, $arg);
+                } else {
+                    $field = $this->field_parser->parse_field($arg);
+                }
+                $fields[$field->key] = $field;
+            }
         }
 
         // set defaults
-        foreach ($this->defaults as $key => $value) {
-            $default = $this->field_parser->get_field($key, $value);
-            if ($default !== null && !isset($fields[$default->key]) && $this->is_default_enabled($assoc_args,
-                    $default->alias)) {
-                $fields[$default->key] = $default;
+        if ($this->defaults) {
+            foreach ($this->defaults as $key => $value) {
+                $default = $this->field_parser->get_field($key, $value);
+                if ($default !== null && !isset($fields[$default->key]) && $this->is_default_enabled($assoc_args,
+                        $default->alias)) {
+                    $fields[$default->key] = $default;
+                }
             }
         }
+
+        $fields = array_filter($fields, function ($field) {
+            return $field->callback !== null;
+        });
 
         return $fields;
     }

@@ -5,6 +5,7 @@ namespace Rdlv\WordPress\Dummy;
 
 
 use Exception;
+use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 
 class FieldParser
@@ -26,7 +27,7 @@ class FieldParser
         '(?P<generator>%s)' .
         '(' .
             ':' .
-            '(?P<options>.*)' .
+            '(?P<arguments>.*)' .
         ')?' .
     '$/';
     // @formatter:on
@@ -42,11 +43,6 @@ class FieldParser
 
     private $field_key_preg = null;
     private $field_value_preg = null;
-
-    public function __construct($aliases)
-    {
-        $this->aliases = $aliases;
-    }
 
     public function set_aliases($aliases)
     {
@@ -78,6 +74,7 @@ class FieldParser
     public function add_handler($id, HandlerInterface $handler)
     {
         $this->handlers[$id] = $handler;
+        $this->field_key_preg = null;
     }
 
     public function get_handler($id)
@@ -96,6 +93,7 @@ class FieldParser
     public function add_generator($id, GeneratorInterface $generator)
     {
         $this->generators[$id] = $generator;
+        $this->field_value_preg = null;
     }
 
     public function get_generator($id)
@@ -134,14 +132,14 @@ class FieldParser
     public function get_field($key, $value)
     {
         $field = new Field();
-        $this->parse_key($key, $field);
-        $field->callback = $this->parse_value($value);
+        $this->parse_field_key($key, $field);
+        $field->callback = $value === null ? null : $this->parse_field_value($value);
         return $field;
     }
 
     private function resolve_alias($alias)
     {
-        return array_key_exists($alias, $this->aliases) ? $this->aliases[$alias] : $alias;
+        return $this->aliases && array_key_exists($alias, $this->aliases) ? $this->aliases[$alias] : $alias;
     }
 
     /**
@@ -150,7 +148,7 @@ class FieldParser
      * @return Field
      * @throws Exception
      */
-    private function parse_key($key, &$field)
+    private function parse_field_key($key, &$field)
     {
         if (preg_match($this->get_field_key_preg(), $this->resolve_alias($key), $m)) {
             $field->alias = $key;
@@ -164,48 +162,34 @@ class FieldParser
     }
 
     /**
-     * @param $raw_value
+     * @param string|array $value
      * @return GeneratorCall
+     * @throws Exception
      */
-    public function parse_value($raw_value)
+    public function parse_field_value($value)
     {
-        /* Simple value format is:
-         * generator:arg1,arg2,arg3
-         * It is transformed in following yaml:
-         * {generator:[arg1,arg2,arg3]}
-         */
+        if (is_string($value)) {
 
-        // transform simple format to yaml
-        $value = preg_replace_callback($this->get_field_value_preg(), function ($m) {
-            $yaml_regex = '/^(\{.*\}|\[.*\]|".*"|\'.*\')$/';
+//            // short syntax generator call: generator:arg1,arg2,arg3
+//            $generator_call = $this->parse_generator_call($value);
+//            if ($generator_call instanceof GeneratorCall) {
+//                return $generator_call;
+//            }
 
-            if (preg_match($yaml_regex, $m[0])) {
-                return $m[0];
+            try {
+                // try parsing value
+                $parser = new Parser();
+                $value = $parser->parse($value);
+            } catch (ParseException $e) {
+                // parsing failed, consider raw value
+                return new GeneratorCall(null, new RawValue(), $value);
             }
-
-            $value = '{' . $m['generator'] . ': ';
-            if (empty($m['options'])) {
-                $value .= '{}';
-            } elseif (!preg_match($yaml_regex, $m['options'])) {
-                $value .= '[' . $m['options'] . ']';
-            }
-            $value .= '}';
-            return $value;
-        }, $raw_value);
-
-        // try parsing value
-        $parser = new Parser();
-        try {
-            $value = $parser->parse($value);
-        } catch (Exception $e) {
-            // parsing failed, consider raw value
-            $value = $raw_value;
         }
 
         $this->resolve_generators($value);
 
         if (!$value instanceof GeneratorCall) {
-            $value = new GeneratorCall(null, $value);
+            $value = new GeneratorCall(null, new RawValue(), $value);
         }
 
         return $value;
@@ -213,7 +197,25 @@ class FieldParser
 
     /**
      * @param $value
-     * @return array|GeneratorCall
+     * @return string|GeneratorCall
+     * @throws Exception
+     */
+    public function parse_generator_call($value)
+    {
+        if (is_string($value) && preg_match($this->get_field_value_preg(), $value, $m)) {
+            // value is a short syntax generator call
+            return new GeneratorCall(
+                $m['generator'],
+                $this->get_generator($m['generator']),
+                isset($m['arguments']) ? $m['arguments'] : null
+            );
+        }
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @throws Exception
      */
     public function resolve_generators(&$value)
     {
@@ -221,7 +223,17 @@ class FieldParser
             if (count($value) === 1) {
                 $key = key($value);
                 if (in_array($key, array_keys($this->generators))) {
-                    $value = new GeneratorCall($this->get_generator($key), $value[$key]);
+                    $args = $value[$key];
+                    if (is_string($args)) {
+                        $args = $this->parse_generator_call($args);
+                        if ($args instanceof GeneratorCall) {
+                            $args = [$args];
+                        }
+                    } elseif (is_array($args)) {
+                        // array may contain generator short syntax calls
+                        $this->resolve_generators($args);
+                    }
+                    $value = new GeneratorCall($key, $this->get_generator($key), $args);
                 } else {
                     $this->resolve_generators($value[$key]);
                 }
@@ -230,8 +242,9 @@ class FieldParser
                     $this->resolve_generators($subvalue);
                 }
             }
+        } elseif (is_string($value)) {
+            $value = $this->parse_generator_call($value);
         }
-        return $value;
     }
 
 }

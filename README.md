@@ -15,3 +15,13 @@ Once you've done so, you can install this package with:
 
     wp package install git@github.com:jerome-rdlv/dummy.git
 
+## Misc
+
+If you need to set a field to an ambiguous value, like you want
+to set the value "html:lorem" in meta:test. By default, this value will be interpreted
+as HTML generator with "lorem" option. To explicit your raw value, you can use
+the raw pseudo generator like this : `meta:test=raw:html:lorem`
+
+## Dummy.yml
+
+Tasks file. Give file example.

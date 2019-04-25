@@ -14,5 +14,5 @@ interface Initialized
      * @return void
      * @throws Exception
      */
-    public function init($args, $assoc_args);
+    public function init_task($args, $assoc_args);
 }

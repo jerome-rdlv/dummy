@@ -109,7 +109,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         $this->api_secret = $secret;
     }
 
-    public function init($args, $assoc_args)
+    public function init_task($args, $assoc_args)
     {
         $this->images_params['client_id'] = $this->api_access;
 
@@ -130,7 +130,18 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
 //        }
     }
 
-    public function get($options, $post_id = null)
+    public function normalize($args)
+    {
+        // TODO: Implement normalize() method.
+        return $args;
+    }
+
+    public function validate($args)
+    {
+        // TODO: Implement validate() method.
+    }
+
+    public function get($args, $post_id = null)
     {
         if ($this->images_index >= count($this->images_data)) {
             // load more images

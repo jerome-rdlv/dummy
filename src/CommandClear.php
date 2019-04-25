@@ -16,7 +16,7 @@ use WP_CLI;
  * : The type of post to generate
  *
  */
-class CommandClear extends AbstractCommand implements CommandInterface
+class CommandClear extends AbstractCommand
 {
     private $post_type = null;
 

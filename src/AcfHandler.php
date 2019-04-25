@@ -8,22 +8,22 @@ use Exception;
 
 /**
  * Populate ACF field
- * 
+ *
  * ACF fields are filled with random content according to their type by default.
- * 
+ *
  * If a field is not found for the created post, an error will be thrown.
- * 
+ *
  * Complex types are populated recursively, for example Flex and Repeater.
- * 
+ *
  * Example:
- * 
+ *
  *      {id}:description
- * 
+ *
  * If ACF field description is of type wysiwyg, it will be filled with random
  * HTML content.
- * 
+ *
  *      {id}:contents
- * 
+ *
  * If ACF field contents exists for the created post and is of type flex, a random
  * number of blocs will be created with a random layout for each, and subfields of
  * each bloc will also be populated.
@@ -38,25 +38,42 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
      * Connections between ACF field types and values
      * @var GeneratorCall[]
      */
-    private $connections;
+    private $connections = [];
 
-    public function __construct($connections)
+    private $initialized = false;
+
+    /**
+     * @param $connections
+     */
+    public function set_connections($connections)
     {
         $this->connections = $connections;
     }
 
-    public function init($args, $assoc_args)
+    /**
+     * @throws Exception
+     */
+    public function init()
     {
+        if (!$this->initialized) {
+            $this->initialized = true;
+            
+            // parse / initialize connections
+            foreach ($this->connections as $key => $connection) {
+                $this->connections[$key] = $this->field_parser->parse_field_value($connection);
+            }
+        }
+    }
+
+    public function init_task($args, $assoc_args)
+    {
+        $this->init();
+
         if (!function_exists('acf_get_field_groups')) {
             throw new Exception('ACF is not loaded.');
         }
         if (!empty($assoc_args['post-type'])) {
             $this->post_type = $assoc_args['post-type'];
-        }
-
-        // parse / initialize connections
-        foreach ($this->connections as $key => $connection) {
-            $this->connections[$key] = $this->field_parser->parse_value($connection);
         }
     }
 

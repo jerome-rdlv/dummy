@@ -13,8 +13,12 @@ namespace Rdlv\WordPress\Dummy;
 class MetaHandler implements HandlerInterface, Initialized
 {
     private $post_type = null;
+    
+    public function init()
+    {
+    }
 
-    public function init($args, $assoc_args)
+    public function init_task($args, $assoc_args)
     {
         if (!empty($assoc_args['post-type'])) {
             $this->post_type = $assoc_args['post-type'];

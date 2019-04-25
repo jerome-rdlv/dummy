@@ -2,6 +2,27 @@ parameters:
     env(PIXABAY_KEY):
     env(UNSPLASH_ACCESS):
     env(UNSPLASH_SECRET):
+    aliases:
+        author: post_author
+        content: post_content
+        date: post_date
+        thumb: meta:_thumbnail_id
+        title: post_title
+        status: post_status
+        template: meta:_wp_page_template
+    defaults:
+        content: html:4,8,ul,h2,h3,medium
+        date: date:4 months ago,now
+        thumb: image
+        title:
+            text: number:4,16
+        status: publish
+        author: ''
+    acf_connections:
+        image: image
+        wysiwyg: html:4,ul,h2,h3
+        text: text:4,16
+        textarea: text:10,60
 services:
     _defaults:
         autoconfigure: true
@@ -18,53 +39,39 @@ services:
         \Rdlv\WordPress\Dummy\UseFieldParserInterface:
             tags: ['app.use_field_parser']
     Rdlv\WordPress\Dummy\FieldParser:
-        arguments:
-            $aliases:
-                author: post_author
-                content: post_content
-                date: post_date
-                thumb: meta:_thumbnail_id
-                title: post_title
-                status: post_status
-                template: meta:_wp_page_template
+        calls:
+            - [set_aliases, ['%aliases%']]
     date:
         class: \Rdlv\WordPress\Dummy\RandomDate
     number:
         class: \Rdlv\WordPress\Dummy\RandomNumber
     html:
         class: \Rdlv\WordPress\Dummy\Loripsum
-#    image:
-#        class: \Rdlv\WordPress\Dummy\Pixabay
-#        calls:
-#            - [set_key, ['%env(PIXABAY_KEY)%']]
+    #    image:
+    #        class: \Rdlv\WordPress\Dummy\Pixabay
+    #        calls:
+    #            - [set_key, ['%env(PIXABAY_KEY)%']]
     image:
         class: \Rdlv\WordPress\Dummy\Unsplash
         calls:
             - [set_keys, ['%env(UNSPLASH_ACCESS)%', '%env(UNSPLASH_SECRET)%']]
     text:
         class: \Rdlv\WordPress\Dummy\LoripsumWords
-        arguments: ['@html']
+        calls:
+            - [set_html, ['@html']]
+    raw:
+        class: \Rdlv\WordPress\Dummy\RawValue
     meta:
         class: \Rdlv\WordPress\Dummy\MetaHandler
     acf:
         class: \Rdlv\WordPress\Dummy\AcfHandler
-        arguments:
-            $connections:
-                image: image
-                wysiwyg: html:4,ul,h2,h3
-                text: text:4,16
-                textarea: text:10,60
+        calls:
+            - [set_connections, ['%acf_connections%']]
     generate:
         class: \Rdlv\WordPress\Dummy\CommandGenerate
         public: true
-        arguments:
-            $defaults:
-                content: html:6,ul,h2,h3
-                date: date:4 months ago,now
-                thumb: image
-                title: text:4,16
-                status: publish
-                author: ''
+        calls:
+            - [set_defaults, ['%defaults%']]
     clear:
         class: \Rdlv\WordPress\Dummy\CommandClear
         public: true

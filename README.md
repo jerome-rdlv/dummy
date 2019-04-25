@@ -1,6 +1,8 @@
 Dummy
 =====
 
+[![pipeline status](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/badges/develop/pipeline.svg)](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/commits/develop)
+
 Time saver when you need to fill dummy content in your WordPress site.
 
 For devs, Dummy allow you to stress your integration

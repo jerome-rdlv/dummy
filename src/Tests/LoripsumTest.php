@@ -48,7 +48,6 @@ class LoripsumTest extends TestCase
         $this->assertEquals([8], $this->getNumbers((new Loripsum())->normalize(['8', '8'])));
         $this->assertEquals([9], $this->getNumbers((new Loripsum())->normalize(['9', '9', 'h2', 'h3'])));
         $this->assertEquals([10], $this->getNumbers((new Loripsum())->normalize(['h2', '10', 'h3', '10'])));
-        
     }
 
     public function testNumbersOverflow()

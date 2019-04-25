@@ -2,7 +2,7 @@ Dummy
 =====
 
 [![pipeline status](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/badges/develop/pipeline.svg)](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/commits/develop)
-[![coverage report](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/badges/master/coverage.svg)](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/commits/master)
+[![coverage report](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/badges/develop/coverage.svg)](https://gitlab.rue-de-la-vieille.fr/jerome/dummy/commits/develop)
 
 Time saver when you need to fill dummy content in your WordPress site.
 

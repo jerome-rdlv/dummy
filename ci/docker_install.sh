@@ -8,7 +8,6 @@ set -xe
 # Install composer
 apt-get update -yqq \
     && apt-get install -yqq \
-        apt-utils \
         wget \
         git \
         libzip-dev \

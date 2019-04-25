@@ -19,8 +19,12 @@ apt-get update -yqq
 
 # Install composer
 #apt-get install wget zlib1g-dev -yqq
-apt-get install git libzip-dev zip -yqq
-docker-php-ext-install zip
+apt-get install -yqq \
+        apt-utils \
+        git \
+        libzip-dev \
+        zip \
+    && docker-php-ext-install zip
 wget https://composer.github.io/installer.sig -O - -q | tr -d '\n' > installer.sig
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 php -r "if (hash_file('SHA384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"

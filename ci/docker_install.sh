@@ -24,6 +24,7 @@ apt-get install -yqq \
         git \
         libzip-dev \
         zip \
+    && docker-php-ext-configure zip --with-libzip \
     && docker-php-ext-install zip
 wget https://composer.github.io/installer.sig -O - -q | tr -d '\n' > installer.sig
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

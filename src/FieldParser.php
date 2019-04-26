@@ -48,6 +48,11 @@ class FieldParser
     {
         $this->aliases = $aliases;
     }
+    
+    public function get_aliases()
+    {
+        return $this->aliases;
+    }
 
     private function get_field_key_preg()
     {
@@ -246,5 +251,4 @@ class FieldParser
             $value = $this->parse_generator_call($value);
         }
     }
-
 }

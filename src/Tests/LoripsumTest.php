@@ -54,7 +54,6 @@ class LoripsumTest extends TestCase
     {
         $this->expectExceptionMessage('only one or two accepted');
         (new Loripsum())->normalize(['8', '8', '5']);
-
     }
     
     public function testDoubleLengthArgument()

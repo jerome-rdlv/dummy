@@ -13,16 +13,16 @@ use Exception;
  *
  * ## Options
  *
- * Empty options result in now
- *
  *      - begin: Start date of the random interval
  *      - end: End date of the random interval
  *
- * Short syntax:
+ * Empty options result in now
+ *
+ * ## Short syntax
  *
  *      {id}:<begin>,<end>
  *
- * For example:
+ * ## Example
  *
  *      {id}:4 months ago,now
  */

@@ -5,6 +5,9 @@ namespace Rdlv\WordPress\Dummy;
 
 
 use Exception;
+use Symfony\Component\Yaml\Dumper;
+use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
 
 /**
@@ -41,16 +44,10 @@ use WP_CLI;
  * : Generation rules in the form field=options
  *
  * Following defaults are applied by command configuration:
- *      - content=html:6,ul,h2,h3
- *      - date=date:4 months ago,now
- *      - thumb=image
- *      - title=text:4,16
- *      - status=publish
- *      - author=''
+ * {defaults}
  *
  * Aliases are available to target commons fields:
- *      - content: post_content
- *      - thumb: meta:_thumbnail_id
+ * {aliases}
  *
  */
 class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
@@ -92,6 +89,31 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     public function set_defaults($defaults)
     {
         $this->defaults = $defaults;
+    }
+
+    /**
+     * @param string $doc Documentation to extend
+     * @return string
+     */
+    public function extend_doc($doc)
+    {
+        $dumper = new Dumper();
+        $aliases = $this->field_parser->get_aliases();
+        return str_replace(
+            [
+                '{defaults}',
+                '{aliases}',
+            ],
+            [
+                implode("\n", array_map(function ($key, $val) use ($dumper) {
+                    return "\t\t- $key=". (is_array($val) ? $dumper->dump($val) : $val);
+                }, array_keys($this->defaults), $this->defaults)),
+                implode("\n", array_map(function ($key, $val) {
+                    return "\t\t- $key=$val";
+                }, array_keys($aliases), $aliases)),
+            ],
+            $doc
+        );
     }
 
     protected function validate($args, $assoc_args)

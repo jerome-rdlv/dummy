@@ -14,11 +14,11 @@ use Exception;
  *      - min
  *      - max
  *
- * Short syntax:
+ * ## Short syntax
  *
  *      {id}:<min>,<max>
  *
- * For example:
+ * ## Example
  *
  *      {id}:4,16
  */

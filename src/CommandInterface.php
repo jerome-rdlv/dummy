@@ -13,4 +13,10 @@ interface CommandInterface
      * @return void
      */
     public function register_service($service);
+
+    /**
+     * @param string $doc Documentation to extend
+     * @return string
+     */
+    public function extend_doc($doc);
 }

@@ -99,7 +99,7 @@ class Compositor
         }
         return $this->get_extended_doc($service_id, [
             'shortdesc' => $dp->get_shortdesc(),
-            'longdesc'  => $dp->get_longdesc(),
+            'longdesc'  => $command->extend_doc($dp->get_longdesc()),
             'synopsis'  => $synopsis,
         ]);
     }
@@ -184,11 +184,21 @@ class Compositor
         if ($class_longdesc) {
             $class_path = explode('\\', $class);
             $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
-            $longdesc .= preg_replace('/{id}/', $id, sprintf(
+            $longdesc .= sprintf(
                 "\n\n## %s\n\n%s",
                 $title,
-                $class_longdesc
-            ));
+                preg_replace(
+                    [
+                        '/{id}/',
+                        '/^ *##+ +(.*)$/m',
+                    ],
+                    [
+                        $id,
+                        WP_CLI::colorize('%9\1%n'),
+                    ],
+                    $class_longdesc
+                )
+            );
         }
     }
 

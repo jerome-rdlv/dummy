@@ -69,6 +69,9 @@ class FieldParserTest extends TestCase
         $parser->add_generator('raw', new RawValue());
         $this->assertNotEquals('html:test string', $parser->parse_field('test=html:test string')->get_value());
         $this->assertEquals('html:test string', $parser->parse_field('test=raw:html:test string')->get_value());
+        $this->assertNull($parser->parse_field('test')->callback);
+        $this->assertNull($parser->parse_field('test=')->callback);
+        $this->assertEquals('', $parser->parse_field('test=raw:')->get_value());
     }
 
     public function testGenerator()

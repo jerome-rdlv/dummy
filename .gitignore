@@ -7,5 +7,5 @@ vendor/
 *.swp
 *.txt
 *.log
-composer.lock
 .phpunit.result.cache
+composer.lock

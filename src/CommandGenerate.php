@@ -27,6 +27,9 @@ use WP_CLI;
  *
  * [--no-tasks]
  * : Do not read tasks file
+ * 
+ * [--without-defaults]
+ * : Do not apply default fields
  *
  * [--count=<count>]
  * : Number of posts to generate
@@ -40,7 +43,7 @@ use WP_CLI;
  * default: post
  * ---
  *
- * [<rules>...]
+ * [<fields>...]
  * : Generation rules in the form field=options
  *
  * Following defaults are applied by command configuration:
@@ -116,7 +119,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         );
     }
 
-    protected function validate($args, $assoc_args)
+    public function validate($args, $assoc_args)
     {
         if (!function_exists('wp_insert_post') || !function_exists('wp_update_post')) {
             throw new Exception('WordPress admin must be loaded');
@@ -159,7 +162,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     {
         $this->count = $assoc_args['count'];
         $this->post_type = $assoc_args['post-type'];
-
+        
         $this->install_companion();
 
         $this->fields = $this->get_fields($args, $assoc_args);
@@ -213,7 +216,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
      * @return array
      * @throws Exception
      */
-    private function get_fields($args, $assoc_args)
+    public function get_fields($args, $assoc_args = [])
     {
         $fields = [];
 
@@ -225,7 +228,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
                 } else {
                     $field = $this->field_parser->parse_field($arg);
                 }
-                $fields[$field->key] = $field;
+                $fields[$field->key] = $field->callback !== null ? $field : null;
             }
         }
 
@@ -233,23 +236,21 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         if ($this->defaults) {
             foreach ($this->defaults as $key => $value) {
                 $default = $this->field_parser->get_field($key, $value);
-                if ($default !== null && !isset($fields[$default->key]) && $this->is_default_enabled($assoc_args,
+                if ($default !== null && !array_key_exists($default->key, $fields) && $this->is_default_enabled($assoc_args,
                         $default->alias)) {
                     $fields[$default->key] = $default;
                 }
             }
         }
 
-        $fields = array_filter($fields, function ($field) {
-            return $field->callback !== null;
-        });
+        $fields = array_filter($fields);
 
         return $fields;
     }
 
     private function is_default_enabled($assoc_args, $alias)
     {
-        return !isset($assoc_args[$alias]) || $assoc_args[$alias];
+        return !isset($assoc_args['without-defaults']) || $assoc_args['without-defaults'] !== true;
     }
 
     private function print_progress($message, $count, $total)

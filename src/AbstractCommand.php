@@ -24,7 +24,7 @@ abstract class AbstractCommand implements CommandInterface
      * @param $assoc_args
      * @throws Exception
      */
-    abstract protected function validate($args, $assoc_args);
+    abstract public function validate($args, $assoc_args);
 
     /**
      * @param $args
@@ -34,7 +34,12 @@ abstract class AbstractCommand implements CommandInterface
      */
     abstract protected function run($args, $assoc_args);
 
-    public function __invoke($args, $assoc_args)
+    /**
+     * @param $args
+     * @param $assoc_args
+     * @return array Loaded tasks
+     */
+    public function load_tasks($args, $assoc_args)
     {
         $tasks = [];
 
@@ -54,7 +59,14 @@ abstract class AbstractCommand implements CommandInterface
             // single task, defined by CLI arguments
             $tasks = [[$args, $assoc_args]];
         }
+        
+        return $tasks;
+    }
 
+    public function __invoke($args, $assoc_args)
+    {
+        $tasks = $this->load_tasks($args, $assoc_args);
+        
         // validation
         $error = false;
         foreach ($tasks as $name => $task) {

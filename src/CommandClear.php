@@ -25,7 +25,7 @@ class CommandClear extends AbstractCommand
         return $doc;
     }
 
-    protected function validate($args, $assoc_args)
+    public function validate($args, $assoc_args)
     {
         if (!empty($assoc_args['post-type'])) {
             $post_types = get_post_types();

@@ -25,6 +25,8 @@ to set the value "html:lorem" in meta:test. By default, this value will be inter
 as HTML generator with "lorem" option. To explicit your raw value, you can use
 the raw pseudo generator like this : `meta:test=raw:html:lorem`
 
+To set an empty value, use `raw:`
+
 ## Dummy.yml
 
 Tasks file. Give file example.

@@ -18,7 +18,8 @@ class InitializePass implements CompilerPassInterface
             $command_definition = $container->getDefinition($command_id);
             foreach ($services as $service_id => $service_tags) {
                 $command_definition->addMethodCall('register_service', [
-                    new Reference($service_id),
+                    $service_id,
+                    new Reference($service_id)
                 ]);
             }
         }

@@ -19,11 +19,6 @@ use WP_CLI;
 class CommandClear extends AbstractCommand
 {
     private $post_type = null;
-    
-    public function extend_doc($doc)
-    {
-        return $doc;
-    }
 
     public function validate($args, $assoc_args)
     {

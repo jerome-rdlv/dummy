@@ -10,183 +10,173 @@ use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Image generator based on Unsplash API
- * 
+ *
  * This generator get high quality images from Unsplash API, upload it to the
  * media library, and return the resulting attachment id.
  *
- * You can go to https://pixabay.com/en/photos/ to setup your image selection.
+ * You can go to https://unsplash.com/ to setup your image selection.
+ *
+ * ## Options
+ *
+ * [--access-key=<key>]
+ * : API access key; you may use the UNSPLASH_ACCESS environment variable instead to provide this key.
  *
  * To get Unsplash API keys you must create an account on the
  * service (https://unsplash.com/join) and create an app.
  *
- * [--unsplash-access-key=<key>]
- * : API access key
- *
- * [--unsplash-secret-key=<key>]
- * : API secret key
- *
- * [--unsplash-options=<defaults>]
- * : Options for image query. Possible values are:
- * [ horizontal, vertical ]
- * [ photo, illustration, vector ]
- * [ fashion, nature, backgrounds, science, education, people, feelings, religion, health, places, animals, industry, food, computer, sports, transportation, travel, buildings, business, music ]
- * [ grayscale, transparent, red, orange, yellow, green, turquoise, blue, lilac, pink, white, gray, black, brown ]
+ * [--max=<max>]
+ * : Max number of photo to load; if more are needed, previously loaded will be reused.
  * ---
- * default: photo/horizontal/industry
+ * default: {max_upload}
  * ---
- * 
- * Example:
- * 
- *      thumb={id}:photo,places,blue,horizontal
+ *
+ * [--random]
+ * : Retrieve random photos; use --no-{id}-random to get predictable results.
+ * ---
+ * type: flag
+ * ---
+ *
+ * ## Arguments
+ *
+ *      - orientation: {orientations}
+ *      - query: Search terms
+ *      - w: Max width of image, default to {max_width}
+ *      - h: Max height of image, default to {max_height}
+ *
+ * ## Short syntax example
+ *
+ *      {id}:<width>,<height>,landscape,technology
+ *
+ * ## Example
+ *
+ *      {id}:photo,places,blue,horizontal
  *
  */
-class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Initialized
+class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Initialized, ExtendDocInterface
 {
-    const API_IMAGE_URL = 'https://api.unsplash.com/photos/random';
+    const API_IMAGE_URL_RANDOM = 'https://api.unsplash.com/photos/random';
+    const API_IMAGE_URL_SEARCH = 'https://api.unsplash.com/search/photos';
     const API_IMAGE_DESC = '<a href="%1$s">Photo</a> by ' .
     '<a href="%2$s">%3$s</a>';
-    const API_IMAGE_PAGE_SIZE_MIN = 3;  // api accept 3 as minimum per_page param value
-    const API_IMAGE_PAGE_SIZE_MAX = 12;
-    const API_IMAGE_OPTIONS = [
-        'orientation' => ['horizontal', 'vertical'],
-        'image_type'  => ['photo', 'illustration', 'vector'],
-        'category'    => [
-            'fashion',
-            'nature',
-            'backgrounds',
-            'science',
-            'education',
-            'people',
-            'feelings',
-            'religion',
-            'health',
-            'places',
-            'animals',
-            'industry',
-            'food',
-            'computer',
-            'sports',
-            'transportation',
-            'travel',
-            'buildings',
-            'business',
-            'music',
-        ],
-        'colors'      => [
-            'grayscale',
-            'transparent',
-            'red',
-            'orange',
-            'yellow',
-            'green',
-            'turquoise',
-            'blue',
-            'lilac',
-            'pink',
-            'white',
-            'gray',
-            'black',
-            'brown',
-        ],
+    const API_RANDOM_COUNT_MAX = 30;
+    const API_PER_PAGE = 30;
+
+    const API_IMAGE_ORIENTATIONS = ['landscape', 'portrait', 'squarish'];
+
+    const API_ARGS = [
+        'orientation',
+        'query',
     ];
+
+    const DEFAULT_IMAGE_MAX_WIDTH = 1200;
+    const DEFAULT_IMAGE_MAX_HEIGHT = 1200;
 
     private $api_access;
-    private $api_secret;
 
-    private $max_upload = 25;
+    private $max_upload = self::API_PER_PAGE;
+    private $random = true;
 
-    private $images_params = [
-//        'editors_choice' => 'false', // true, [false]
-//        'safesearch'     => 'true',
-    ];
-    private $images_total = null;
-    private $images_data = [];
-    private $images_index = 0;
+    private $images = [];
 
-    public function set_keys($access, $secret)
+    public function set_key($access)
     {
         $this->api_access = $access;
-        $this->api_secret = $secret;
     }
 
-    public function init_task($args, $assoc_args)
+    public function extend_doc($doc)
     {
-        $this->images_params['client_id'] = $this->api_access;
+        return str_replace(
+            [
+                '{orientations}',
+                '{max_upload}',
+                '{max_width}',
+                '{max_height}',
+            ],
+            [
+                '[' . implode(', ', self::API_IMAGE_ORIENTATIONS) . ']',
+                $this->max_upload,
+                self::DEFAULT_IMAGE_MAX_WIDTH,
+                self::DEFAULT_IMAGE_MAX_HEIGHT,
+            ],
+            $doc
+        );
+    }
 
-//        foreach (explode('/', $assoc_args['pixabay-options']) as $option) {
-//            if ($option) {
-//                $match = false;
-//                foreach (self::API_IMAGE_OPTIONS as $param => $values) {
-//                    if (in_array($option, $values)) {
-//                        $match = true;
-//                        $this->images_params[$param] = $option;
-//                        break;
-//                    }
-//                }
-//                if (!$match) {
-//                    WP_CLI::warning(sprintf('Unknown image option %s', $option));
-//                }
-//            }
-//        }
+    public function init_task($args, $assoc_args, $globals)
+    {
+        if (!empty($assoc_args['access-key'])) {
+            $this->api_access = $assoc_args['access-key'];
+        }
+        if (!empty($assoc_args['max'])) {
+            $this->max_upload = $assoc_args['max'];
+        }
+        $this->random = isset($assoc_args['random']) ? $assoc_args['random'] : true;
     }
 
     public function normalize($args)
     {
-        // TODO: Implement normalize() method.
-        return $args;
+        $normalized = [];
+        foreach ($args as $arg) {
+            if (is_numeric($arg)) {
+                foreach (['w', 'h'] as $key) {
+                    if (!array_key_exists($key, $normalized)) {
+                        $normalized[$key] = $arg;
+                        break;
+                    }
+                }
+            } elseif (in_array($arg, self::API_IMAGE_ORIENTATIONS)) {
+                if (!array_key_exists('orientation', $normalized)) {
+                    $normalized['orientation'] = $arg;
+                    continue;
+                }
+            } else {
+                if (!array_key_exists('search', $normalized)) {
+                    $normalized['query'] = $arg;
+                } else {
+                    throw new Exception(sprintf(
+                        "too many parameters ('%s').",
+                        $arg
+                    ));
+                }
+            }
+        }
+        return $normalized;
     }
 
     public function validate($args)
     {
-        // TODO: Implement validate() method.
+        if (!$this->api_access) {
+            throw new Exception('You must provide an Unsplash API Key to use Unsplash image generator.');
+        }
     }
 
     public function get($args, $post_id = null)
     {
-        if ($this->images_index >= count($this->images_data)) {
-            // load more images
-            $this->load_images();
+        // apply defaults
+        if (!array_key_exists('w', $args)) {
+            $args['w'] = self::DEFAULT_IMAGE_MAX_WIDTH;
         }
-        if (count($this->images_data) == 0) {
-            throw new Exception('Unsplash API did not return any images.');
+        if (!array_key_exists('h', $args)) {
+            $args['h'] = self::DEFAULT_IMAGE_MAX_HEIGHT;
         }
-        $image = $this->images_data[$this->images_index++ % count($this->images_data)];
+        
+        $image = $this->get_next_image($args);
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
 
     /**
+     * @param $params
+     * @return array
      * @throws Exception
      */
-    private function load_images()
+    private function load_more_images($params)
     {
-        $images_count = count($this->images_data);
-        $page_max_size = $this->max_upload - $images_count;
-
-        if ($page_max_size <= 0) {
-            return;
-        }
-
-        if (!$this->api_access) {
-            throw new Exception('To use Unsplash image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
-        }
+        $url = $this->random ? self::API_IMAGE_URL_RANDOM : self::API_IMAGE_URL_SEARCH;
 
         try {
             $client = new Client();
-            $per_page = max(
-            // this is a hard min, API errors otherwise
-                self::API_IMAGE_PAGE_SIZE_MIN,
-                min(
-                    $page_max_size,
-                    rand(self::API_IMAGE_PAGE_SIZE_MIN, self::API_IMAGE_PAGE_SIZE_MAX)
-                )
-            );
-            $response = $client->request('GET', self::API_IMAGE_URL, [
-                'query' => array_replace([], $this->images_params, [
-                    'count' => max($page_max_size, 1),
-//                    'per_page' => $per_page,
-                    // get random page
-//                    'page'     => rand(1, floor($this->get_image_total() / $per_page)),
-                ]),
+            $response = $client->request('GET', $url, [
+                'query' => $params,
             ]);
 
             if ($response->getStatusCode() !== 200) {
@@ -195,22 +185,29 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
 
             /** @noinspection PhpComposerExtensionStubsInspection */
             $responseBody = $response->getBody()->getContents();
-            $images = json_decode($responseBody);
-            if (!$images) {
+            $rows = json_decode($responseBody);
+            if (!$rows) {
                 throw new Exception('Exception loading images from API: json_decode returned null');
             }
+            
+            if (isset($rows->results) && is_array($rows->results)) {
+                $rows = $rows->results;
+            }
 
-            for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
-                $this->images_data[] = (object)[
-                    'url'  => $images[$i]->urls->raw . '&w=1200&h=1200&dummy.jpg',
+            $images = [];
+            foreach ($rows as $row) {
+                $images[] = (object)[
+                    'url'  => $row->urls->raw,
                     'desc' => sprintf(
                         self::API_IMAGE_DESC,
-                        $images[$i]->links->html,
-                        $images[$i]->user->links->html,
-                        $images[$i]->user->name
+                        $row->links->html,
+                        $row->user->links->html,
+                        $row->user->name
                     ),
                 ];
             }
+
+            return $images;
 
         } catch (GuzzleException $e) {
             throw new Exception('Exception loading images from API: ' . $e->getMessage());
@@ -218,28 +215,69 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     }
 
     /**
-     * @return integer
+     * @param $args
+     * @return mixed
      * @throws Exception
      */
-    private function get_image_total()
+    private function get_next_image($args)
     {
-        if ($this->images_total === null) {
-            try {
-                $client = new Client();
-                $response = $client->request('GET', self::API_IMAGE_URL, [
-                    'query' => array_replace([], $this->images_params, [
-                        'per_page' => self::API_IMAGE_PAGE_SIZE_MIN,
-                    ]),
-                ]);
-                if ($response->getStatusCode() !== 200) {
-                    throw new Exception('Exception loading total from image from API: ' . $response->getReasonPhrase());
-                }
-                /** @noinspection PhpComposerExtensionStubsInspection */
-                $this->images_total = json_decode($response->getBody())->totalHits;
-            } catch (GuzzleException $e) {
-                throw new Exception('Exception loading total from image API: ' . $e->getMessage());
-            }
+        $set_id = md5(json_encode($args));
+
+        // initialize
+        if (!array_key_exists($set_id, $this->images)) {
+            $this->images[$set_id] = [
+                'images' => [],
+                'index'  => 0,
+            ];
         }
-        return $this->images_total;
+
+        // load images
+        $set = &$this->images[$set_id];
+        $total = count($set['images']);
+        $left = $this->max_upload - $total;
+        if ($set['index'] >= $total && $left > 0) {
+
+            $params = [];
+            foreach ($args as $param => $value) {
+                if (in_array($param, self::API_ARGS)) {
+                    $params[$param] = $value;
+                }
+            }
+            $params['client_id'] = $this->api_access;
+            if ($this->random) {
+                $params['count'] = min($left, self::API_RANDOM_COUNT_MAX);
+            } else {
+                $params['per_page'] = self::API_PER_PAGE;
+                $params['page'] = floor($set['index'] / self::API_PER_PAGE) + 1;
+            }
+
+            $images = array_slice($this->load_more_images($params), 0, $left);
+
+            if ($images) {
+                foreach (['w', 'h'] as $key) {
+                    if (!empty($args[$key])) {
+                        foreach ($images as &$image) {
+                            $image->url .= "&$key=$args[$key]";
+                        }
+                    }
+                }
+                foreach ($images as &$image) {
+                    $image->url .= '&dummy.jpg';
+                }
+                $set['images'] = array_merge($set['images'], $images);
+            }
+            else {
+                // no more images returned, change max_upload
+                // to prevent subsequent loadings
+                $this->max_upload = count($set['images']);
+            }
+
+        }
+
+        if (count($set['images']) == 0) {
+            throw new Exception('Unsplash API did not return any images.');
+        }
+
+        return $set['images'][$set['index']++ % count($set['images'])];
     }
 }

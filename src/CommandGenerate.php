@@ -6,8 +6,6 @@ namespace Rdlv\WordPress\Dummy;
 
 use Exception;
 use Symfony\Component\Yaml\Dumper;
-use Symfony\Component\Yaml\Parser;
-use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
 
 /**
@@ -27,7 +25,7 @@ use WP_CLI;
  *
  * [--no-tasks]
  * : Do not read tasks file
- * 
+ *
  * [--without-defaults]
  * : Do not apply default fields
  *
@@ -53,7 +51,7 @@ use WP_CLI;
  * {aliases}
  *
  */
-class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
+class CommandGenerate extends AbstractCommand implements UseFieldParserInterface, ExtendDocInterface
 {
     use UseFieldParserTrait;
 
@@ -109,7 +107,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
             ],
             [
                 implode("\n", array_map(function ($key, $val) use ($dumper) {
-                    return "\t\t- $key=". (is_array($val) ? $dumper->dump($val) : $val);
+                    return "\t\t- $key=" . (is_array($val) ? $dumper->dump($val) : $val);
                 }, array_keys($this->defaults), $this->defaults)),
                 implode("\n", array_map(function ($key, $val) {
                     return "\t\t- $key=$val";
@@ -128,7 +126,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         // validate parameters
         if (!is_numeric($assoc_args['count']) || $assoc_args['count'] < 1) {
             throw new Exception(sprintf(
-                'Count must be a number greater than 0 (%s given).',
+                'count must be a number greater than 0 (%s given).',
                 $assoc_args['count']
             ));
         }
@@ -136,7 +134,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         $post_types = get_post_types();
         if (!in_array($assoc_args['post-type'], $post_types)) {
             throw new Exception(sprintf(
-                'Post type %s unknown, must be any of %s',
+                'post type %s unknown, must be any of %s',
                 $assoc_args['post-type'],
                 implode(', ', $post_types)
             ));
@@ -144,7 +142,16 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
 
         $fields = $this->get_fields($args, $assoc_args);
         if (empty($fields)) {
-            throw new Exception('No fields defined, this task is empty.');
+            throw new Exception('no fields defined, this task is empty.');
+        } else {
+            foreach ($fields as $field) {
+                if ($field->handler === null && !in_array($field->name, self::AUTHORIZED_FIELDS)) {
+                    throw new Exception(sprintf(
+                        'field "%s" is not authorized.',
+                        $field->name
+                    ));
+                }
+            }
         }
     }
 
@@ -162,7 +169,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     {
         $this->count = $assoc_args['count'];
         $this->post_type = $assoc_args['post-type'];
-        
+
         $this->install_companion();
 
         $this->fields = $this->get_fields($args, $assoc_args);
@@ -193,6 +200,9 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
             if ($post_id !== 0) {
                 $post_ids[] = $post_id;
             }
+            else {
+                throw new Exception('post not created.');
+            }
         }
         $this->print_progress($progress, $this->count, $this->count);
 
@@ -213,7 +223,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     /**
      * @param $args
      * @param $assoc_args
-     * @return array
+     * @return Field[]
      * @throws Exception
      */
     public function get_fields($args, $assoc_args = [])
@@ -228,27 +238,28 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
                 } else {
                     $field = $this->field_parser->parse_field($arg);
                 }
-                $fields[$field->key] = $field->callback !== null ? $field : null;
+                $fields[$field->key] = $field;
             }
         }
 
         // set defaults
-        if ($this->defaults) {
+        if ($this->defaults && $this->are_defaults_enabled($assoc_args)) {
             foreach ($this->defaults as $key => $value) {
                 $default = $this->field_parser->get_field($key, $value);
-                if ($default !== null && !array_key_exists($default->key, $fields) && $this->is_default_enabled($assoc_args,
-                        $default->alias)) {
+                if ($default !== null && !array_key_exists($default->key, $fields)) {
                     $fields[$default->key] = $default;
                 }
             }
         }
 
-        $fields = array_filter($fields);
+        $fields = array_filter($fields, function ($field) {
+            return $field->callback !== null;
+        });
 
         return $fields;
     }
 
-    private function is_default_enabled($assoc_args, $alias)
+    private function are_defaults_enabled($assoc_args)
     {
         return !isset($assoc_args['without-defaults']) || $assoc_args['without-defaults'] !== true;
     }
@@ -261,7 +272,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
             WP_CLI::colorize($end ? '%G✔%n' : '%w·%n'),
             str_pad(
                 $end ? '(' . $total . ')' : '(' . $count . '/' . $total . ')',
-                floor(log($total) + 1) * 2 + 3,
+                (int)(floor(log($total) + 1) * 2 + 3),
                 ' '
             )
         );

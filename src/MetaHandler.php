@@ -5,26 +5,13 @@ namespace Rdlv\WordPress\Dummy;
 
 /**
  * Populate post meta
- * 
+ *
  * Example:
- * 
- *      {id}:custom_field=html
+ *
+ *      {id}:custom_field=raw:your_value
  */
-class MetaHandler implements HandlerInterface, Initialized
+class MetaHandler implements HandlerInterface
 {
-    private $post_type = null;
-    
-    public function init()
-    {
-    }
-
-    public function init_task($args, $assoc_args)
-    {
-        if (!empty($assoc_args['post-type'])) {
-            $this->post_type = $assoc_args['post-type'];
-        }
-    }
-
     public function generate($post_id, $field)
     {
         update_post_meta(

@@ -1,7 +1,6 @@
 parameters:
     env(PIXABAY_KEY):
     env(UNSPLASH_ACCESS):
-    env(UNSPLASH_SECRET):
     aliases:
         author: post_author
         content: post_content
@@ -53,7 +52,7 @@ services:
     image:
         class: \Rdlv\WordPress\Dummy\Unsplash
         calls:
-            - [set_keys, ['%env(UNSPLASH_ACCESS)%', '%env(UNSPLASH_SECRET)%']]
+            - [set_key, ['%env(UNSPLASH_ACCESS)%']]
     text:
         class: \Rdlv\WordPress\Dummy\LoripsumWords
         calls:

@@ -7,7 +7,7 @@ namespace Rdlv\WordPress\Dummy;
 /**
  * Allow to explicit raw value in case that value is ambiguous (look like a generator call).
  * 
- * Example:
+ * ## Example
  * 
  *      {id}:text:value:with:semicolons
  */

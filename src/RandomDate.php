@@ -11,7 +11,7 @@ use Exception;
  *
  * Time expressions are parsed by PHP `strtotime` function.
  *
- * ## Options
+ * ## Arguments
  *
  *      - begin: Start date of the random interval
  *      - end: End date of the random interval
@@ -67,7 +67,10 @@ class RandomDate implements GeneratorInterface
     public function get($options, $context = [])
     {
         if ($options) {
-            return date('Y-m-d H:i:s', rand($options[self::START], $options[self::END]));
+            return date('Y-m-d H:i:s', rand(
+                strtotime($options[self::START]),
+                strtotime($options[self::END])
+            ));
         } else {
             // return now
             return date('Y-m-d H:i:s');

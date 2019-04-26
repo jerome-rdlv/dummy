@@ -14,9 +14,9 @@ abstract class AbstractCommand implements CommandInterface
     /** @var Initialized[] */
     private $registered_services = [];
 
-    public function register_service($service)
+    public function register_service($id, $service)
     {
-        $this->registered_services[] = $service;
+        $this->registered_services[$id] = $service;
     }
 
     /**
@@ -59,14 +59,14 @@ abstract class AbstractCommand implements CommandInterface
             // single task, defined by CLI arguments
             $tasks = [[$args, $assoc_args]];
         }
-        
+
         return $tasks;
     }
 
     public function __invoke($args, $assoc_args)
     {
         $tasks = $this->load_tasks($args, $assoc_args);
-        
+
         // validation
         $error = false;
         foreach ($tasks as $name => $task) {
@@ -86,15 +86,53 @@ abstract class AbstractCommand implements CommandInterface
                 if (is_string($name)) {
                     echo "$name\n";
                 }
-                foreach ($this->registered_services as $service) {
-                    $service->init_task($task[0], $task[1]);
+                $global_args = $this->get_global_args($task[1]);
+                foreach ($this->registered_services as $id => $service) {
+                    $service->init_task(
+                        $task[0],
+                        $this->get_service_args($task[1], $id),
+                        $global_args
+                    );
                 }
-                $this->run($task[0], $task[1]);
+                $this->run($task[0], $global_args);
             }
         } catch (\Exception $e) {
             $this->error($e->getMessage());
             exit(1);
         }
+    }
+
+    private function get_global_args($assoc_args)
+    {
+        // detect services keys
+        $keys_regex = '/^(' . implode('|', array_filter(
+                array_keys($this->registered_services),
+                function ($key) {
+                    return is_numeric($key) ? false : $key;
+                }
+            )) . ')-/';
+
+        $globals = [];
+        foreach ($assoc_args as $key => $value) {
+            if (!preg_match($keys_regex, $key)) {
+                $globals[$key] = $value;
+            }
+        }
+
+        return $globals;
+    }
+
+    private function get_service_args($assoc_args, $id)
+    {
+        $unprefixed = [];
+        $length = strlen($id) + 1;
+        foreach ($assoc_args as $key => $value) {
+            if (strpos($key, $id . '-') === 0) {
+                $unprefixed[substr($key, $length)] = $value;
+            }
+        }
+
+        return $unprefixed;
     }
 
     private function get_task_args($data)

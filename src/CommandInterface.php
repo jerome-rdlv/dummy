@@ -6,17 +6,17 @@ namespace Rdlv\WordPress\Dummy;
 
 interface CommandInterface
 {
+    /**
+     * @param [] $args
+     * @param [] $assoc_args
+     * @return void
+     */
     public function __invoke($args, $assoc_args);
 
     /**
+     * @param string $id
      * @param Initialized $service
      * @return void
      */
-    public function register_service($service);
-
-    /**
-     * @param string $doc Documentation to extend
-     * @return string
-     */
-    public function extend_doc($doc);
+    public function register_service($id, $service);
 }

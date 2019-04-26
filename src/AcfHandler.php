@@ -65,15 +65,15 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
         }
     }
 
-    public function init_task($args, $assoc_args)
+    public function init_task($args, $assoc_args, $globals)
     {
         $this->init();
 
         if (!function_exists('acf_get_field_groups')) {
             throw new Exception('ACF is not loaded.');
         }
-        if (!empty($assoc_args['post-type'])) {
-            $this->post_type = $assoc_args['post-type'];
+        if (!empty($globals['post-type'])) {
+            $this->post_type = $globals['post-type'];
         }
     }
 

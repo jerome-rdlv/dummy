@@ -95,12 +95,18 @@ class Compositor
 
         $synopsis = $dp->get_synopsis();
         if (empty($synopsis)) {
-            $synopsis = $this->get_options_from_doc($dp);
+            $synopsis = $this->get_doc_options($dp);
         }
+
+        $longdesc = $dp->get_longdesc();
+        if ($command instanceof ExtendDocInterface) {
+            $longdesc = $command->extend_doc($longdesc);
+        }
+
         return $this->get_extended_doc($service_id, [
-            'shortdesc' => $dp->get_shortdesc(),
-            'longdesc'  => $command->extend_doc($dp->get_longdesc()),
             'synopsis'  => $synopsis,
+            'shortdesc' => $dp->get_shortdesc(),
+            'longdesc'  => $longdesc,
         ]);
     }
 
@@ -125,13 +131,6 @@ class Compositor
         });
     }
 
-    private function set_option_name_as_key($options)
-    {
-        return array_combine(array_map(function ($item) {
-            return $item['name'];
-        }, $options), $options);
-    }
-
     /**
      * @param $class
      * @return DocParser
@@ -148,94 +147,95 @@ class Compositor
         }
     }
 
-    private function get_options_from_doc(DocParser $doc)
+    private function get_doc_options(DocParser $doc, $id = null)
     {
         $synopsis = $doc->get_synopsis();
         if (!$synopsis) {
             preg_match_all('/(.+?)[\r\n]+: /', $doc->get_longdesc(), $matches);
             $synopsis = implode(' ', $matches[1]);
         }
-        return $this->set_option_name_as_key(array_values(
-            SynopsisParser::parse($synopsis)
-        ));
-    }
-
-    private function extend_command_options(
-        &$options,
-        DocParser $doc
-    ) {
-        foreach ($this->get_options_from_doc($doc) as $name => $option) {
-            if (!isset($options[$name])) {
-                $options[$name] = $option;
-            }
-//            else {
-//                WP_CLI::warning(sprintf(
-//                    'Service %s has invalid option %s (it is used already).',
-//                    $class,
-//                    $name
-//                ));
-//            }
+        $synopsis = SynopsisParser::parse($synopsis);
+        if ($id !== null) {
+            array_walk($synopsis, function (&$option) use ($id) {
+                $name = $option['name'];
+                $option['token'] = str_replace($name, $id . '-' . $name, $option['token']);
+                $option['name'] = $id . '-' . $name;
+            });
         }
-    }
-
-    private function extend_command_longdesc(&$longdesc, DocParser $doc, $class, $id)
-    {
-        $class_longdesc = trim(trim($doc->get_shortdesc()) . "\n\n" . trim($doc->get_longdesc()));
-        if ($class_longdesc) {
-            $class_path = explode('\\', $class);
-            $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
-            $longdesc .= sprintf(
-                "\n\n## %s\n\n%s",
-                $title,
-                preg_replace(
-                    [
-                        '/{id}/',
-                        '/^ *##+ +(.*)$/m',
-                    ],
-                    [
-                        $id,
-                        WP_CLI::colorize('%9\1%n'),
-                    ],
-                    $class_longdesc
-                )
-            );
-        }
+        return array_combine(array_column($synopsis, 'name'), $synopsis);
     }
 
     /**
      * Extend command doc with generators and handlers options and descriptions.
      * @param string $service_id
-     * @param $doc
+     * @param [] $doc
      * @return array Extended doc
      */
     private function get_extended_doc($service_id, $doc)
     {
-        $options = $this->set_option_name_as_key($doc['synopsis']);
+        $synopsis = $doc['synopsis'];
+        $synopsis = array_combine(array_column($synopsis, 'name'), $synopsis);
         $longdesc = $doc['longdesc'];
 
         try {
             $service = $this->container->get($service_id);
             if ($service instanceof UseFieldParserInterface) {
+
+                // extends command doc with each service own doc
                 $field_parser = $service->get_field_parser();
+                $services = array_merge($field_parser->get_handlers(), $field_parser->get_generators());
+                foreach ($services as $service_id => $service_instance) {
+                    $service_class = get_class($service_instance);
+                    $service_doc = $this->get_class_doc($service_instance);
 
-                foreach ($field_parser->get_generators() as $generator_id => $type_instance) {
-                    $type_class = get_class($type_instance);
-                    $type_doc = $this->get_class_doc($type_instance);
-                    $this->extend_command_options($options, $type_doc);
-                    $this->extend_command_longdesc($longdesc, $type_doc, $type_class, $generator_id);
-                }
+                    // extend command options
+                    foreach ($this->get_doc_options($service_doc, $service_id) as $name => $option) {
+                        // prevent option overwrite by service
+                        if (!isset($synopsis[$name])) {
+                            $synopsis[$name] = $option;
+                        }
+                    }
 
-                foreach ($field_parser->get_handlers() as $handler_id => $handler_instance) {
-                    $handler_class = get_class($handler_instance);
-                    $handler_doc = $this->get_class_doc($handler_instance);
-                    $this->extend_command_options($options, $handler_doc);
-                    $this->extend_command_longdesc($longdesc, $handler_doc, $handler_class, $handler_id);
+                    // extend command longdesc
+                    $class_longdesc = trim(trim($service_doc->get_shortdesc()) . "\n\n" . trim($service_doc->get_longdesc()));
+                    if ($class_longdesc) {
+                        if ($service_instance instanceof ExtendDocInterface) {
+                            $class_longdesc = $service_instance->extend_doc($class_longdesc);
+                        }
+//                        $class_path = explode('\\', $service_class);
+//                        $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
+                        $title = $service_id;
+                        if ($service_instance instanceof GeneratorInterface) {
+                            $title .= ' generator';
+                        } elseif ($service_instance instanceof HandlerInterface) {
+                            $title .= ' handler';
+                        }
+                        $longdesc .= sprintf(
+                            "\n\n## %s\n\n%s",
+                            strtoupper($title),
+                            preg_replace(
+                                [
+                                    '/{id}/',
+                                    '/^ *##+ +(.*)$/m',
+                                    '/^ *\[--([^\]]+)\]$/m',
+                                ],
+                                [
+                                    $service_id,
+                                    WP_CLI::colorize('%9\1%n'),
+                                    '[--' . $service_id . '-\1]',
+                                ],
+                                $class_longdesc
+                            )
+                        );
+                    }
                 }
             }
         } catch (Exception $e) {
+            $this->error($e->getMessage());
+            exit(1);
         }
 
-        $doc['synopsis'] = SynopsisParser::render($options);
+        $doc['synopsis'] = SynopsisParser::render($synopsis);
         $doc['longdesc'] = $longdesc;
 
         return $doc;

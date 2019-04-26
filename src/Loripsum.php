@@ -11,35 +11,26 @@ use GuzzleHttp\Exception\GuzzleException;
 /**
  * Retrieve random text or rich text from http://loripsum.net/
  *
- * ## Options
+ * ## Arguments
  *
- *      - short, medium, long, verylong
- *      - decorate
- *      - link
- *      - ul
- *      - ol
- *      - dl
- *      - bq
- *      - code
- *      - h1
- *      - h2
- *      - h3
- *      - h4
- *      - h5
- *      - h6
- *      - allcaps
- *      - prude
- *      - plaintext
+ *      - {length}
+ *      - {arguments}
  * 
- * Short syntax:
+ * ## Short syntax
  * 
- *      {id}:<paragraph_count>,<length>,<options…>
+ * For fixed paragraph count:
  * 
- * For example:
+ *      {id}:<count>,<length>,<arguments…>
  * 
- *      {id}:6,short,ul,h2,h3
+ * For random paragraph count:
+ * 
+ *      {id}:<min>,<max>,<arguments…>
+ * 
+ * ## Example
+ * 
+ *      {id}:2,6,short,ul,h2,h3
  */
-class Loripsum implements GeneratorInterface
+class Loripsum implements GeneratorInterface, ExtendDocInterface
 {
     const API_HTML_URL = 'https://loripsum.net/api/%s';
 
@@ -64,6 +55,23 @@ class Loripsum implements GeneratorInterface
         'prude',
         'plaintext',
     ];
+    
+    public function extend_doc($doc)
+    {
+        return str_replace(
+            [
+                '{length}',
+                '{arguments}',
+            ],
+            [
+                implode(', ', self::LENGTH),
+                implode(', ', array_filter(self::OPTIONS, function ($item) {
+                    return !is_array($item);
+                })),
+            ],
+            $doc
+        );
+    }
 
     public function normalize($args)
     {

@@ -20,7 +20,7 @@ class CommandGenerateTest extends TestCase
         $this->expectExceptionMessage('WordPress admin must be loaded');
         $cmd->validate([], []);
     }
-
+    
     public function testInlineTask()
     {
         $cmd = new CommandGenerate();

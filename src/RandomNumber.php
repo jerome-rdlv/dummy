@@ -9,7 +9,7 @@ use Exception;
 /**
  * Provide random numbers
  *
- * ## Options
+ * ## Arguments
  *
  *      - min
  *      - max

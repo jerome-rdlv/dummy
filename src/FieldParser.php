@@ -138,7 +138,7 @@ class FieldParser
     {
         $field = new Field();
         $this->parse_field_key($key, $field);
-        $field->callback = empty($value) ? null : $this->parse_field_value($value);
+        $field->callback = $this->parse_field_value($value);
         return $field;
     }
 

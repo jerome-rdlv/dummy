@@ -16,7 +16,7 @@ use Exception;
  *      - begin: Start date of the random interval
  *      - end: End date of the random interval
  *
- * Empty options result in now
+ * Empty arguments result in now.
  *
  * ## Short syntax
  *
@@ -50,26 +50,26 @@ class RandomDate implements GeneratorInterface
         if ($args) {
             foreach ([self::START, self::END] as $key) {
                 if (!array_key_exists($key, $args)) {
-                    throw new Exception(sprintf('an "%s" argument is needed.', $key));
+                    throw new Exception(sprintf("a '%s' argument is needed.", $key));
                 }
             }
         }
         foreach ($args as $key => $option) {
             $date = strtotime($option);
             if ($date === false) {
-                throw new Exception(sprintf('"%s" argument value "%s" is not a valid date expression', $key, $option));
+                throw new Exception(sprintf("'%s' argument value '%s' is not a valid date expression", $key, $option));
             } else {
                 $args[$key] = $date;
             }
         }
     }
 
-    public function get($options, $context = [])
+    public function get($args, $post_id = null)
     {
-        if ($options) {
+        if ($args) {
             return date('Y-m-d H:i:s', rand(
-                strtotime($options[self::START]),
-                strtotime($options[self::END])
+                strtotime($args[self::START]),
+                strtotime($args[self::END])
             ));
         } else {
             // return now

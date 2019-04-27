@@ -39,7 +39,7 @@ class CommandClear extends AbstractCommand
     private function remove_companion()
     {
         if (defined('WPMU_PLUGIN_DIR')) {
-            $local = dirname(__DIR__) .'/dummy.php';
+            $local = dirname(__DIR__) .'/inc/dummy.php';
             $dest = WPMU_PLUGIN_DIR . '/dummy.php';
             if (file_exists($dest) && file_get_contents($local) === file_get_contents($dest)) {
                 unlink($dest);

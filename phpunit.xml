@@ -8,13 +8,14 @@
 >
     <testsuites>
         <testsuite name="Main">
-            <directory>./src/Tests</directory>
+            <directory>./test</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
             <directory suffix=".php">./src</directory>
+            <directory suffix=".php">./test</directory>
             <file>command.php</file>
         </whitelist>
     </filter>

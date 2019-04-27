@@ -24,6 +24,6 @@ class RawValue implements GeneratorInterface
 
     public function get($args, $post_id = null)
     {
-        return implode('', $args);
+        return implode(',', $args);
     }
 }

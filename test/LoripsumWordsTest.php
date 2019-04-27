@@ -2,6 +2,7 @@
 
 /** @noinspection PhpParamsInspection,PhpUnhandledExceptionInspection */
 
+namespace Rdlv\WordPress\Dummy\Test;
 
 use PHPUnit\Framework\TestCase;
 use Rdlv\WordPress\Dummy\LoripsumWords;

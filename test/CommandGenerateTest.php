@@ -2,6 +2,7 @@
 
 /** @noinspection PhpParamsInspection, PhpUnhandledExceptionInspection */
 
+namespace Rdlv\WordPress\Dummy\Test;
 
 use PHPUnit\Framework\TestCase;
 use Rdlv\WordPress\Dummy\CommandGenerate;
@@ -26,7 +27,7 @@ class CommandGenerateTest extends TestCase
         $cmd = new CommandGenerate();
         $tasks = $cmd->load_tasks(['content=html', 'thumb=image'], ['no-tasks' => true]);
         $this->assertCount(1, $tasks);
-        $this->assertEquals(['content=html', 'thumb=image'], $tasks[0][0]);
+        $this->assertEquals(['content=html', 'thumb=image'], $tasks[0]['args']);
     }
 
     public function testNoTasksFileAndInlineEmpty()
@@ -73,7 +74,7 @@ class CommandGenerateTest extends TestCase
         // if args given, they are considered to be tasks names
         // so here, no tasks corresponds and we end up with a single CLI task
         $tasks = $cmd->load_tasks(['content=html'], ['tasks' => self::TASKS_FILE]);
-        $this->assertEquals(['content=html'], $tasks[0][0]);
+        $this->assertEquals(['content=html'], $tasks[0]['args']);
 
         // no args given, all tasks found in tasks file are loaded
         $tasks = $cmd->load_tasks([], ['tasks' => self::TASKS_FILE]);
@@ -124,6 +125,7 @@ class CommandGenerateTest extends TestCase
         $field = $fields['content'];
         $this->assertEquals('html', $field->callback->get_generator_id());
         $this->assertEquals([2, 3, 'short'], $field->callback->get_args());
+        $this->assertEquals('2,3,short', $field->get_value());
 
         // pass empty field to cancel default
         $args_array = [
@@ -132,7 +134,7 @@ class CommandGenerateTest extends TestCase
         ];
         foreach ($args_array as $args) {
             $fields = $cmd->get_fields($args);
-            $this->assertEmpty($fields);
+            $this->assertEmpty($fields['content']->get_value());
         }
         
         // cancel defaults flag

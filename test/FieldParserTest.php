@@ -10,11 +10,8 @@ use PHPUnit\Framework\TestCase;
 use Rdlv\WordPress\Dummy\AcfHandler;
 use Rdlv\WordPress\Dummy\FieldParser;
 use Rdlv\WordPress\Dummy\GeneratorInterface;
-use Rdlv\WordPress\Dummy\Loripsum;
-use Rdlv\WordPress\Dummy\LoripsumWords;
 use Rdlv\WordPress\Dummy\MetaHandler;
 use Rdlv\WordPress\Dummy\RawValue;
-use TestGenerator;
 
 class FieldParserTest extends TestCase
 {
@@ -69,8 +66,8 @@ class FieldParserTest extends TestCase
         $parser->add_generator('raw', new RawValue());
         $this->assertNotEquals('html:test string', $parser->parse_field('test=html:test string')->get_value());
         $this->assertEquals('html:test string', $parser->parse_field('test=raw:html:test string')->get_value());
-        $this->assertNull($parser->parse_field('test')->callback);
-        $this->assertNull($parser->parse_field('test=')->callback);
+        $this->assertEmpty($parser->parse_field('test')->get_value());
+        $this->assertEmpty($parser->parse_field('test=')->get_value());
         $this->assertEquals('', $parser->parse_field('test=raw:')->get_value());
     }
 
@@ -125,6 +122,10 @@ class FieldParserTest extends TestCase
         $parser->add_generator('number', new RawValue());
 
         $field = $parser->parse_field('test={html:[{number:[1,7,93]},h2,h3]}');
-        $this->assertEquals([1793, 'h2', 'h3'], $field->callback->get_args());
+        $this->assertEquals(['1,7,93', 'h2', 'h3'], $field->callback->get_args());
+
+        $parser->add_generator('raw', new RawValue());
+        $field = $parser->parse_field('test={html:[{raw:"[1,7,93]"},h2,h3]}');
+        $this->assertEquals(['[1,7,93]', 'h2', 'h3'], $field->callback->get_args());
     }
 }

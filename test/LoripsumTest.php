@@ -2,6 +2,8 @@
 
 /** @noinspection PhpParamsInspection,PhpUnhandledExceptionInspection */
 
+namespace Rdlv\WordPress\Dummy\Test;
+
 use PHPUnit\Framework\TestCase;
 use Rdlv\WordPress\Dummy\Loripsum;
 
@@ -12,18 +14,19 @@ class LoripsumTest extends TestCase
         $this->expectExceptionMessageRegExp('/unknown argument "test"/');
         (new Loripsum())->validate([2, 'test']);
     }
-    
+
     public function testNegativeParagraphCount()
     {
         $this->expectExceptionMessage('must be a positive integer');
         (new Loripsum())->validate([-1, 'ul']);
     }
-    
-    public function testFloatParagraphCount() {
+
+    public function testFloatParagraphCount()
+    {
         $this->expectExceptionMessage('must be a positive integer');
         (new Loripsum())->validate([1.2, 'h2']);
     }
-    
+
     private function getNumbers($items)
     {
         $numbers = [];
@@ -34,7 +37,7 @@ class LoripsumTest extends TestCase
         }
         return $numbers;
     }
-    
+
     public function testFixedParagraphCount()
     {
         $this->assertEquals([8], $this->getNumbers((new Loripsum())->normalize(['8'])));
@@ -42,7 +45,7 @@ class LoripsumTest extends TestCase
         $this->assertEquals([10], $this->getNumbers((new Loripsum())->normalize(['ul', '10', 'h3'])));
         $this->assertEquals([11], $this->getNumbers((new Loripsum())->normalize(['ul', 'links', '11'])));
     }
-    
+
     public function testRandomParagraphCount()
     {
         $this->assertEquals([8], $this->getNumbers((new Loripsum())->normalize(['8', '8'])));
@@ -55,7 +58,7 @@ class LoripsumTest extends TestCase
         $this->expectExceptionMessage('only one or two accepted');
         (new Loripsum())->normalize(['8', '8', '5']);
     }
-    
+
     public function testDoubleLengthArgument()
     {
         $this->expectExceptionMessage('length is already set');

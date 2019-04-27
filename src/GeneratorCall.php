@@ -34,7 +34,14 @@ class GeneratorCall
             }
             try {
                 $args = $generator->normalize($args);
-                $generator->validate($args);
+                $errors = $generator->validate($args);
+                if ($errors) {
+                    throw new Exception(sprintf(
+                        self::EXCEPTION_FORMAT,
+                        $generator_id,
+                        count($errors) === 1 ? $errors[0] : "\n\t - ". implode("\n\t - ", $errors)
+                    ));
+                }
             } catch (Exception $e) {
                 if ($generator_id) {
                     throw new Exception(sprintf(

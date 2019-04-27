@@ -23,7 +23,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Rdlv\\WordPress\\Dummy\\": "src/"
+            "Rdlv\\WordPress\\Dummy\\": "src/",
+            "Rdlv\\WordPress\\Dummy\\Test\\": "test/"
         },
         "files": [
             "command.php"

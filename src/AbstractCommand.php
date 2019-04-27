@@ -57,7 +57,13 @@ abstract class AbstractCommand implements CommandInterface
 
         if (!$tasks) {
             // single task, defined by CLI arguments
-            $tasks = [[$args, $assoc_args]];
+            $tasks = [
+                [
+                    'args'     => $args,
+                    'globals'  => $this->get_global_assoc_args($assoc_args),
+                    'services' => $this->get_services_assoc_args($assoc_args),
+                ],
+            ];
         }
 
         return $tasks;
@@ -71,7 +77,11 @@ abstract class AbstractCommand implements CommandInterface
         $error = false;
         foreach ($tasks as $name => $task) {
             try {
-                $this->validate($task[0], $task[1]);
+                // initialize services
+                foreach ($this->registered_services as $id => $service) {
+                    $service->init_task($task['args'], $task['services'][$id], $task['globals']);
+                }
+                $this->validate($task['args'], $task['globals']);
             } catch (Exception $e) {
                 $this->error(sprintf('task %s: %s', $name, $e->getMessage()));
                 $error = true;
@@ -86,23 +96,15 @@ abstract class AbstractCommand implements CommandInterface
                 if (is_string($name)) {
                     echo "$name\n";
                 }
-                $global_args = $this->get_global_args($task[1]);
-                foreach ($this->registered_services as $id => $service) {
-                    $service->init_task(
-                        $task[0],
-                        $this->get_service_args($task[1], $id),
-                        $global_args
-                    );
-                }
-                $this->run($task[0], $global_args);
+                $this->run($task['args'], $task['globals']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error($e->getMessage());
             exit(1);
         }
     }
 
-    private function get_global_args($assoc_args)
+    private function get_global_assoc_args($assoc_args)
     {
         // detect services keys
         $keys_regex = '/^(' . implode('|', array_filter(
@@ -122,26 +124,35 @@ abstract class AbstractCommand implements CommandInterface
         return $globals;
     }
 
-    private function get_service_args($assoc_args, $id)
+    private function get_services_assoc_args($data)
     {
-        $unprefixed = [];
-        $length = strlen($id) + 1;
-        foreach ($assoc_args as $key => $value) {
-            if (strpos($key, $id . '-') === 0) {
-                $unprefixed[substr($key, $length)] = $value;
+        $services_args = [];
+        foreach ($this->registered_services as $id => $service) {
+            $services_args[$id] = [];
+            $length = strlen($id) + 1;
+            foreach ($data as $key => $value) {
+                if (strpos($key, $id . '-') === 0) {
+                    $services_args[$id][substr($key, $length)] = $value;
+                }
             }
         }
 
-        return $unprefixed;
+        return $services_args;
     }
 
     private function get_task_args($data)
     {
-        $fields = [];
+        // get args
+        $args = [];
         if (array_key_exists('fields', $data)) {
-            $fields = $data['fields'];
+            $args = $data['fields'];
             unset($data['fields']);
         }
-        return [$fields, $data];
+
+        return [
+            'args'     => $args,
+            'globals'  => $this->get_global_assoc_args($data),
+            'services' => $this->get_services_assoc_args($data),
+        ];
     }
 }

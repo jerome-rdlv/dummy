@@ -31,17 +31,18 @@ use GuzzleHttp\Exception\GuzzleException;
  * ---
  *
  * [--random]
- * : Retrieve random photos; use --no-{id}-random to get predictable results.
+ * : Retrieve random photos; use --no-{id}-random to get predictable results globally.
  * ---
  * type: flag
  * ---
  *
  * ## Arguments
  *
- *      - orientation: {orientations}
- *      - query: Search terms
  *      - w: Max width of image, default to {max_width}
  *      - h: Max height of image, default to {max_height}
+ *      - orientation: {orientations}
+ *      - order: {order}
+ *      - query: Search terms
  *
  * ## Short syntax example
  *
@@ -59,7 +60,9 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     const API_IMAGE_DESC = '<a href="%1$s">Photo</a> by ' .
     '<a href="%2$s">%3$s</a>';
     const API_RANDOM_COUNT_MAX = 30;
+    
     const API_PER_PAGE = 30;
+    const DEFAULT_MAX_IMAGES_LOADED = 30;
 
     const API_IMAGE_ORIENTATIONS = ['landscape', 'portrait', 'squarish'];
 
@@ -71,9 +74,12 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     const DEFAULT_IMAGE_MAX_WIDTH = 1200;
     const DEFAULT_IMAGE_MAX_HEIGHT = 1200;
 
+    const ORDER_RANDOM = 'random';
+    const ORDER_SEQUENTIAL = 'sequential';
+
     private $api_access;
 
-    private $max_upload = self::API_PER_PAGE;
+    private $max_upload = self::DEFAULT_MAX_IMAGES_LOADED;
     private $random = true;
 
     private $images = [];
@@ -91,12 +97,14 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                 '{max_upload}',
                 '{max_width}',
                 '{max_height}',
+                '{order}',
             ],
             [
                 '[' . implode(', ', self::API_IMAGE_ORIENTATIONS) . ']',
                 $this->max_upload,
                 self::DEFAULT_IMAGE_MAX_WIDTH,
                 self::DEFAULT_IMAGE_MAX_HEIGHT,
+                '[' . self::ORDER_RANDOM . ', ' . self::ORDER_SEQUENTIAL . ']',
             ],
             $doc
         );
@@ -124,11 +132,10 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                         break;
                     }
                 }
-            } elseif (in_array($arg, self::API_IMAGE_ORIENTATIONS)) {
-                if (!array_key_exists('orientation', $normalized)) {
-                    $normalized['orientation'] = $arg;
-                    continue;
-                }
+            } elseif (!array_key_exists('random', $normalized) && in_array($arg, [self::ORDER_RANDOM, self::ORDER_SEQUENTIAL])) {
+                $normalized['random'] = $arg === self::ORDER_RANDOM;
+            } elseif (!array_key_exists('orientation', $normalized) && in_array($arg, self::API_IMAGE_ORIENTATIONS)) {
+                $normalized['orientation'] = $arg;
             } else {
                 if (!array_key_exists('search', $normalized)) {
                     $normalized['query'] = $arg;
@@ -159,9 +166,14 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         if (!array_key_exists('h', $args)) {
             $args['h'] = self::DEFAULT_IMAGE_MAX_HEIGHT;
         }
-        
+
         $image = $this->get_next_image($args);
         return $this->loadimage($image->url, $post_id, $image->desc);
+    }
+    
+    private function is_random($args)
+    {
+        return isset($args['random']) ? $args['random'] : $this->random;
     }
 
     /**
@@ -169,9 +181,24 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
      * @return array
      * @throws Exception
      */
-    private function load_more_images($params)
+    private function load_more_images($args, $count, $index)
     {
-        $url = $this->random ? self::API_IMAGE_URL_RANDOM : self::API_IMAGE_URL_SEARCH;
+        $params = [];
+        foreach ($args as $param => $value) {
+            if (in_array($param, self::API_ARGS)) {
+                $params[$param] = $value;
+            }
+        }
+        $params['client_id'] = $this->api_access;
+        $random = $this->is_random($args);
+        if ($random) {
+            $params['count'] = min($count, self::API_RANDOM_COUNT_MAX);
+        } else {
+            $params['per_page'] = self::API_PER_PAGE;
+            $params['page'] = (int)floor($index / self::API_PER_PAGE) + 1;
+        }
+
+        $url = $random ? self::API_IMAGE_URL_RANDOM : self::API_IMAGE_URL_SEARCH;
 
         try {
             $client = new Client();
@@ -189,11 +216,12 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             if (!$rows) {
                 throw new Exception('Exception loading images from API: json_decode returned null');
             }
-            
+
             if (isset($rows->results) && is_array($rows->results)) {
                 $rows = $rows->results;
             }
 
+            // transform dataset
             $images = [];
             foreach ($rows as $row) {
                 $images[] = (object)[
@@ -205,6 +233,20 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                         $row->user->name
                     ),
                 ];
+            }
+
+            // add size attributes to image URL
+            foreach (['w', 'h'] as $key) {
+                if (!empty($args[$key])) {
+                    foreach ($images as &$image) {
+                        $image->url .= "&$key=$args[$key]";
+                    }
+                }
+            }
+
+            // add dummy parameter for .jpg ending
+            foreach ($images as &$image) {
+                $image->url .= '&dummy.jpg';
             }
 
             return $images;
@@ -237,36 +279,14 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         $left = $this->max_upload - $total;
         if ($set['index'] >= $total && $left > 0) {
 
-            $params = [];
-            foreach ($args as $param => $value) {
-                if (in_array($param, self::API_ARGS)) {
-                    $params[$param] = $value;
-                }
-            }
-            $params['client_id'] = $this->api_access;
-            if ($this->random) {
-                $params['count'] = min($left, self::API_RANDOM_COUNT_MAX);
-            } else {
-                $params['per_page'] = self::API_PER_PAGE;
-                $params['page'] = floor($set['index'] / self::API_PER_PAGE) + 1;
-            }
-
-            $images = array_slice($this->load_more_images($params), 0, $left);
+            $images = $this->load_more_images($args, $left, $set['index']);
 
             if ($images) {
-                foreach (['w', 'h'] as $key) {
-                    if (!empty($args[$key])) {
-                        foreach ($images as &$image) {
-                            $image->url .= "&$key=$args[$key]";
-                        }
-                    }
-                }
-                foreach ($images as &$image) {
-                    $image->url .= '&dummy.jpg';
-                }
-                $set['images'] = array_merge($set['images'], $images);
-            }
-            else {
+                $set['images'] = array_merge(
+                    $set['images'],
+                    array_slice($images, 0, $left)
+                );
+            } else {
                 // no more images returned, change max_upload
                 // to prevent subsequent loadings
                 $this->max_upload = count($set['images']);

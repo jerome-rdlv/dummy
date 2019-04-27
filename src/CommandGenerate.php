@@ -160,7 +160,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         if (defined('WPMU_PLUGIN_DIR')) {
             $dest = WPMU_PLUGIN_DIR . '/dummy.php';
             if (!file_exists($dest)) {
-                copy(dirname(__DIR__) . '/dummy.php', $dest);
+                copy(dirname(__DIR__) . '/inc/dummy.php', $dest);
             }
         }
     }

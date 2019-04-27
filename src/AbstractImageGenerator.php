@@ -4,7 +4,7 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
+use WP_Error;
 
 abstract class AbstractImageGenerator
 {
@@ -15,7 +15,7 @@ abstract class AbstractImageGenerator
      * @param integer|null $post_id
      * @param string $desc
      * @return integer
-     * @throws Exception
+     * @throws DummyException
      */
     protected function loadimage($url, $post_id, $desc)
     {
@@ -24,12 +24,12 @@ abstract class AbstractImageGenerator
         }
 
         if (!function_exists('media_sideload_image') || !function_exists('update_post_meta')) {
-            throw new Exception('Admin must be loaded for image upload');
+            throw new DummyException('Admin must be loaded for image upload');
         }
         $image_id = media_sideload_image($url, $post_id, $desc, 'id');
-        
-        if ($image_id instanceof \WP_Error) {
-            throw new Exception($image_id->get_error_message());
+
+        if ($image_id instanceof WP_Error) {
+            throw new DummyException($image_id->get_error_message());
         }
         update_post_meta($image_id, '_dummy', true);
 

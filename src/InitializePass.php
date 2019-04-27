@@ -14,9 +14,9 @@ class InitializePass implements CompilerPassInterface
     {
         $commands = $container->findTaggedServiceIds('app.command');
         $services = $container->findTaggedServiceIds('app.initialized');
-        foreach ($commands as $command_id => $command_tags) {
+        foreach ($commands as $command_id => $command_tag) {
             $command_definition = $container->getDefinition($command_id);
-            foreach ($services as $service_id => $service_tags) {
+            foreach ($services as $service_id => $initialized_tag) {
                 $command_definition->addMethodCall('register_service', [
                     $service_id,
                     new Reference($service_id)

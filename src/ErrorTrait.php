@@ -4,6 +4,7 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
 use WP_CLI;
 
 trait ErrorTrait
@@ -12,8 +13,8 @@ trait ErrorTrait
     {
         try {
             WP_CLI::error($message);
-        } catch (WP_CLI\ExitException $e) {
-            echo $e->getMessage();
+        } catch (Exception $e) {
+            echo $message;
         }
     }
 }

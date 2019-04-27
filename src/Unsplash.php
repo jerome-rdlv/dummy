@@ -60,7 +60,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     const API_IMAGE_DESC = '<a href="%1$s">Photo</a> by ' .
     '<a href="%2$s">%3$s</a>';
     const API_RANDOM_COUNT_MAX = 30;
-    
+
     const API_PER_PAGE = 30;
     const DEFAULT_MAX_IMAGES_LOADED = 30;
 
@@ -132,7 +132,8 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                         break;
                     }
                 }
-            } elseif (!array_key_exists('random', $normalized) && in_array($arg, [self::ORDER_RANDOM, self::ORDER_SEQUENTIAL])) {
+            } elseif (!array_key_exists('random', $normalized) && in_array($arg,
+                    [self::ORDER_RANDOM, self::ORDER_SEQUENTIAL])) {
                 $normalized['random'] = $arg === self::ORDER_RANDOM;
             } elseif (!array_key_exists('orientation', $normalized) && in_array($arg, self::API_IMAGE_ORIENTATIONS)) {
                 $normalized['orientation'] = $arg;
@@ -140,7 +141,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                 if (!array_key_exists('search', $normalized)) {
                     $normalized['query'] = $arg;
                 } else {
-                    throw new Exception(sprintf(
+                    throw new DummyException(sprintf(
                         "too many parameters ('%s').",
                         $arg
                     ));
@@ -153,7 +154,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     public function validate($args)
     {
         if (!$this->api_access) {
-            throw new Exception('You must provide an Unsplash API Key to use Unsplash image generator.');
+            throw new DummyException('You must provide an Unsplash API Key to use Unsplash image generator.');
         }
     }
 
@@ -170,16 +171,18 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         $image = $this->get_next_image($args);
         return $this->loadimage($image->url, $post_id, $image->desc);
     }
-    
+
     private function is_random($args)
     {
         return isset($args['random']) ? $args['random'] : $this->random;
     }
 
     /**
-     * @param $params
+     * @param array $args
+     * @param integer $count
+     * @param integer $index
      * @return array
-     * @throws Exception
+     * @throws DummyException
      */
     private function load_more_images($args, $count, $index)
     {
@@ -207,14 +210,14 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new Exception('Exception loading images from API: ' . $response->getReasonPhrase());
+                throw new DummyException('Exception loading images from API: ' . $response->getReasonPhrase());
             }
 
             /** @noinspection PhpComposerExtensionStubsInspection */
             $responseBody = $response->getBody()->getContents();
             $rows = json_decode($responseBody);
             if (!$rows) {
-                throw new Exception('Exception loading images from API: json_decode returned null');
+                throw new DummyException('Exception loading images from API: json_decode returned null');
             }
 
             if (isset($rows->results) && is_array($rows->results)) {
@@ -252,7 +255,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             return $images;
 
         } catch (GuzzleException $e) {
-            throw new Exception('Exception loading images from API: ' . $e->getMessage());
+            throw new DummyException('Exception loading images from API: ' . $e->getMessage());
         }
     }
 
@@ -295,7 +298,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
         }
 
         if (count($set['images']) == 0) {
-            throw new Exception('Unsplash API did not return any images.');
+            throw new DummyException('Unsplash API did not return any images.');
         }
 
         return $set['images'][$set['index']++ % count($set['images'])];

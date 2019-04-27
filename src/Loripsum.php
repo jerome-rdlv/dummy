@@ -4,7 +4,6 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -90,7 +89,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
             $normalize[] = rand($numbers[0], $numbers[1]);
         }
         elseif (count($numbers) > 2) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 '%s numbers given but only one or two accepted.',
                 count($numbers)
             ));
@@ -110,7 +109,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
         foreach ($args as &$arg) {
             if (is_numeric($arg)) {
                 if (!is_int($arg + 0) || $arg <= 0) {
-                    throw new Exception(sprintf(
+                    throw new DummyException(sprintf(
                         'paragraph count must be a positive integer greater than 0 ("%s" given).',
                         $arg
                     ));
@@ -119,7 +118,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
             }
             if (in_array($arg, self::LENGTH)) {
                 if ($length) {
-                    throw new Exception(sprintf(
+                    throw new DummyException(sprintf(
                         'length is already set ("%s" is set and "%s" given).',
                         $length,
                         $arg
@@ -131,7 +130,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
                 continue;
             }
             if (!in_array($arg, self::OPTIONS)) {
-                throw new Exception(sprintf(
+                throw new DummyException(sprintf(
                     'unknown argument "%s" given; possible arguments are: %s',
                     $arg,
                     implode(', ', array_map(function ($item) {
@@ -156,10 +155,10 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
             $client = new Client();
             $response = $client->request('GET', sprintf(self::API_HTML_URL, $query));
             if ($response->getStatusCode() !== 200) {
-                throw new Exception('Exception loading html from API: ' . $response->getReasonPhrase());
+                throw new DummyException('Exception loading html from API: ' . $response->getReasonPhrase());
             }
         } catch (GuzzleException $e) {
-            throw new Exception('Exception loading html from API: ' . $e->getMessage());
+            throw new DummyException('Exception loading html from API: ' . $e->getMessage());
         }
 
         // replace out of range headings and return

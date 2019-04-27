@@ -101,7 +101,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
         $this->api_key = $api_key;
     }
 
-    public function init_task($args, $assoc_args)
+    public function init_task($args, $assoc_args, $globals)
     {
         // image API key
         if (isset($assoc_args['pixabay-key'])) {
@@ -139,7 +139,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
     {
         // TODO: Implement validate() method.
     }
-    
+
     public function get($args, $post_id = null)
     {
         if ($this->images_index >= count($this->images_data)) {
@@ -147,7 +147,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
             $this->load_images();
         }
         if (count($this->images_data) == 0) {
-            throw new Exception('Pixabay API did not return any images.');
+            throw new DummyException('Pixabay API did not return any images.');
         }
         $image = $this->images_data[$this->images_index++ % count($this->images_data)];
         return $this->loadimage($image->url, $post_id, $image->desc);
@@ -166,7 +166,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
         }
 
         if (!$this->api_key) {
-            throw new Exception('To use Pixabay image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
+            throw new DummyException('To use Pixabay image generator, you must provide a Pixabay API Key with either --pixabay-key option, or PIXABAY_KEY environment variable.');
         }
 
         $client = new Client();
@@ -188,17 +188,17 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
             ]);
 
         } catch (GuzzleException $e) {
-            throw new Exception('Exception loading images from API: ' . $e->getMessage());
+            throw new DummyException('Exception loading images from API: ' . $e->getMessage());
         }
 
         if ($response->getStatusCode() !== 200) {
-            throw new Exception('Exception loading images from API: ' . $response->getReasonPhrase());
+            throw new DummyException('Exception loading images from API: ' . $response->getReasonPhrase());
         }
 
         /** @noinspection PhpComposerExtensionStubsInspection */
         $images = json_decode($response->getBody())->hits;
         if (!$images) {
-            throw new Exception('Exception loading images from API: json_decode returned null');
+            throw new DummyException('Exception loading images from API: json_decode returned null');
         }
 
         for ($i = 0; $i < min(count($images), $page_max_size); ++$i) {
@@ -229,12 +229,12 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
                     ]),
                 ]);
                 if ($response->getStatusCode() !== 200) {
-                    throw new Exception('Exception loading total from image from API: ' . $response->getReasonPhrase());
+                    throw new DummyException('Exception loading total from image from API: ' . $response->getReasonPhrase());
                 }
                 /** @noinspection PhpComposerExtensionStubsInspection */
                 $this->images_total = json_decode($response->getBody())->totalHits;
             } catch (GuzzleException $e) {
-                throw new Exception('Exception loading total from image API: ' . $e->getMessage());
+                throw new DummyException('Exception loading total from image API: ' . $e->getMessage());
             }
         }
         return $this->images_total;

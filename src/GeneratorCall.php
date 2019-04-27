@@ -20,6 +20,7 @@ class GeneratorCall
     private $args;
 
     /**
+     * @param string $generator_id
      * @param GeneratorInterface $generator
      * @param array|string|null $args
      * @throws Exception
@@ -34,23 +35,15 @@ class GeneratorCall
             }
             try {
                 $args = $generator->normalize($args);
-                $errors = $generator->validate($args);
-                if ($errors) {
-                    throw new Exception(sprintf(
-                        self::EXCEPTION_FORMAT,
-                        $generator_id,
-                        count($errors) === 1 ? $errors[0] : "\n\t - ". implode("\n\t - ", $errors)
-                    ));
-                }
+                $generator->validate($args);
             } catch (Exception $e) {
                 if ($generator_id) {
-                    throw new Exception(sprintf(
+                    throw new DummyException(sprintf(
                         self::EXCEPTION_FORMAT,
                         $generator_id,
                         $e->getMessage()
                     ));
-                }
-                else {
+                } else {
                     throw $e;
                 }
             }
@@ -64,6 +57,8 @@ class GeneratorCall
     }
 
     /**
+     * @param $args
+     * @return mixed
      * @throws Exception
      */
     private function resolve_args($args)
@@ -93,18 +88,17 @@ class GeneratorCall
             return $this->generator->get($this->args, $post_id);
         } catch (Exception $e) {
             if ($this->generator_id) {
-                throw new Exception(sprintf(
+                throw new DummyException(sprintf(
                     self::EXCEPTION_FORMAT,
                     $this->generator_id,
                     $e->getMessage()
                 ));
-            }
-            else {
+            } else {
                 throw $e;
             }
         }
     }
-    
+
     public function get_generator_id()
     {
         return $this->generator_id;

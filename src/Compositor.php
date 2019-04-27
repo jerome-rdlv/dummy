@@ -60,10 +60,13 @@ class Compositor
             // inject CLI arguments
             $containerBuilder->addCompilerPass(new InitializePass());
 
+            // add command to meta commands
+            $containerBuilder->addCompilerPass(new MetaCommandPass());
+
             $containerBuilder->compile(true);
 
             // add commands
-            foreach ($containerBuilder->findTaggedServiceIds('app.command') as $service_id => $tags) {
+            foreach ($containerBuilder->findTaggedServiceIds('app.command') as $service_id => $tag) {
                 // extend composite command documentation
                 $this->add_hook($command_name, $service_id);
 
@@ -71,7 +74,7 @@ class Compositor
                 if ($command instanceof CommandInterface) {
                     WP_CLI::add_command(
                         $command_name . ' ' . $service_id,
-                        $command,
+                        new CommandRunner($command),
                         $this->get_command_doc($service_id, $command)
                     );
                 }
@@ -124,10 +127,6 @@ class Compositor
                 $command->set_shortdesc($docparser->get_shortdesc());
                 $command->set_longdesc($docparser->get_longdesc());
             }
-//
-//            /** @var Subcommand $subcommand */
-//            $subcommand = $command->get_subcommands()[$subcommand_name];
-//            $this->extend_command_doc($subcommand);
         });
     }
 
@@ -185,7 +184,6 @@ class Compositor
                 $field_parser = $service->get_field_parser();
                 $services = array_merge($field_parser->get_handlers(), $field_parser->get_generators());
                 foreach ($services as $service_id => $service_instance) {
-                    $service_class = get_class($service_instance);
                     $service_doc = $this->get_class_doc($service_instance);
 
                     // extend command options
@@ -202,8 +200,6 @@ class Compositor
                         if ($service_instance instanceof ExtendDocInterface) {
                             $class_longdesc = $service_instance->extend_doc($class_longdesc);
                         }
-//                        $class_path = explode('\\', $service_class);
-//                        $title = strtoupper(preg_replace('/(.)([A-Z])/', '\1 \2', array_pop($class_path)));
                         $title = $service_id;
                         if ($service_instance instanceof GeneratorInterface) {
                             $title .= ' generator';

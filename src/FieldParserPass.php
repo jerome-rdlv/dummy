@@ -17,7 +17,7 @@ class FieldParserPass implements CompilerPassInterface
 
         // add handlers to field parser service
         $handlers = $container->findTaggedServiceIds('app.handler');
-        foreach ($handlers as $handler_id => $tags) {
+        foreach ($handlers as $handler_id => $tag) {
             $field_parser_service->addMethodCall('add_handler', [
                 $handler_id,
                 new Reference($handler_id)
@@ -26,7 +26,7 @@ class FieldParserPass implements CompilerPassInterface
 
         // add generators to field parser service
         $generators = $container->findTaggedServiceIds('app.generator');
-        foreach ($generators as $generator_id => $tags) {
+        foreach ($generators as $generator_id => $tag) {
             $field_parser_service->addMethodCall('add_generator', [
                 $generator_id,
                 new Reference($generator_id)
@@ -36,7 +36,7 @@ class FieldParserPass implements CompilerPassInterface
         // inject field parser service
         $field_parser_reference = new Reference($field_parser_service_id);
         $use_field_parser_services = $container->findTaggedServiceIds('app.use_field_parser');
-        foreach ($use_field_parser_services as $service_id => $tags) {
+        foreach ($use_field_parser_services as $service_id => $tag) {
             $service_definition = $container->getDefinition($service_id);
             $service_definition->addMethodCall('set_field_parser', [
                 $field_parser_reference

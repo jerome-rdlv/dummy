@@ -124,7 +124,7 @@ class FieldParser
         if (preg_match(self::ARG_PREG, $arg, $m, PREG_UNMATCHED_AS_NULL)) {
             return $this->get_field($m['key'], isset($m['value']) ? $m['value'] : '');
         } else {
-            throw new Exception(sprintf('Argument bad format: %s', $arg));
+            throw new DummyException(sprintf('Argument bad format: %s', $arg));
         }
     }
 
@@ -161,7 +161,7 @@ class FieldParser
             $field->handler = empty($m['handler']) ? null : $this->handlers[$m['handler']];
             $field->name = $m['name'];
         } else {
-            throw new Exception(sprintf('Field key regex error (blame the dev, this should never happen).'));
+            throw new DummyException(sprintf('Field key regex error (blame the dev, this should never happen).'));
         }
         return $field;
     }

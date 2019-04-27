@@ -4,8 +4,6 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
-
 /**
  * Provide random numbers
  *
@@ -43,14 +41,14 @@ class RandomNumber implements GeneratorInterface
     public function validate($args)
     {
         if (!$args) {
-            throw new Exception('"min" and "max" arguments are needed.');
+            throw new DummyException('"min" and "max" arguments are needed.');
         }
         foreach (['min', 'max'] as $key) {
             if (!array_key_exists($key, $args)) {
-                throw new Exception(sprintf('"%s" argument is needed.', $key));
+                throw new DummyException(sprintf('"%s" argument is needed.', $key));
             }
             if (!is_numeric($args[$key]) || !is_int($args[$key] + 0) || $args[$key] < 0) {
-                throw new Exception(sprintf(
+                throw new DummyException(sprintf(
                     '"%s" argument must be a positive integer ("%s" given).',
                     $key,
                     $args[$key]

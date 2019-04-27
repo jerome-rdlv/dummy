@@ -4,7 +4,6 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
 use WP_CLI;
 
 /**
@@ -16,22 +15,18 @@ use WP_CLI;
  * : The type of post to generate
  *
  */
-class CommandClear extends AbstractCommand
+class CommandClear extends AbstractSubCommand
 {
-    private $post_type = null;
-
     public function validate($args, $assoc_args)
     {
         if (!empty($assoc_args['post-type'])) {
             $post_types = get_post_types();
             if (!in_array($assoc_args['post-type'], $post_types)) {
-                throw new Exception(sprintf(
-                    'Post type %s unknown, must be any of %s',
-                    $this->post_type,
+                throw new DummyException(sprintf(
+                    "Post type '%s' unknown, must be any of %s",
+                    $assoc_args['post-type'],
                     implode(', ', $post_types)
                 ));
-            } else {
-                $this->post_type = $assoc_args['post-type'];
             }
         }
     }
@@ -39,7 +34,7 @@ class CommandClear extends AbstractCommand
     private function remove_companion()
     {
         if (defined('WPMU_PLUGIN_DIR')) {
-            $local = dirname(__DIR__) .'/inc/dummy.php';
+            $local = dirname(__DIR__) . '/inc/dummy.php';
             $dest = WPMU_PLUGIN_DIR . '/dummy.php';
             if (file_exists($dest) && file_get_contents($local) === file_get_contents($dest)) {
                 unlink($dest);
@@ -47,22 +42,31 @@ class CommandClear extends AbstractCommand
         }
     }
 
-    protected function run($args, $assoc_args)
+    public function run($args, $assoc_args)
     {
         global $wpdb;
 
+        $post_type = null;
+        if (isset($assoc_args['post-type'])) {
+            $post_type = $assoc_args['post-type'];
+        }
+       
         $query = "
             SELECT ID, post_type
             FROM $wpdb->posts p
             INNER JOIN $wpdb->postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_dummy'
             WHERE pm.meta_value != 'false'
         ";
-        if ($this->post_type) {
-            $query .= " AND p.post_type = '" . esc_sql($this->post_type) . "'";
+        if ($post_type) {
+            $query .= " AND p.post_type = '" . esc_sql($post_type) . "'";
         }
         $rows = $wpdb->get_results($query);
+
         if ($rows) {
-            foreach ($rows as $row) {
+            $progress = sprintf('delete dummy %s', $post_type ? $post_type . ' posts' : 'posts');
+            $total = count($rows);
+            foreach ($rows as $index => $row) {
+                $this->print_progress($progress, $index, $total);
                 switch ($row->post_type) {
                     case 'attachment':
                         wp_delete_attachment($row->ID, true);
@@ -71,12 +75,13 @@ class CommandClear extends AbstractCommand
                         wp_delete_post($row->ID, true);
                 }
             }
+            $this->print_progress($progress, $total, $total);
+        } else {
+            $this->print_progress('no dummy post to delete');
         }
-        
+
         if (empty($this->post_type)) {
             $this->remove_companion();
         }
-        
-        WP_CLI::success(sprintf('deleted %s posts', count($rows)));
     }
 }

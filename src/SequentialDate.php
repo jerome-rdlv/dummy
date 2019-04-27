@@ -4,8 +4,6 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
-
 /**
  * Provide sequential dates
  *
@@ -60,7 +58,7 @@ class SequentialDate implements GeneratorInterface, Initialized
     public function validate($args)
     {
         if (!$this->count || !is_numeric($this->count) || !is_integer($this->count + 0) || $this->count < 0) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 "count must be a positive integer greater than 0 ('%s' given).",
                 $this->count
             ));
@@ -69,13 +67,13 @@ class SequentialDate implements GeneratorInterface, Initialized
         if ($args) {
             foreach ([self::START, self::END] as $key) {
                 if (!array_key_exists($key, $args)) {
-                    throw new Exception(sprintf("a '%s' argument is needed.", $key));
+                    throw new DummyException(sprintf("a '%s' argument is needed.", $key));
                 }
             }
         }
         foreach ($args as $key => $option) {
             if (strtotime($option) === false) {
-                throw new Exception(sprintf(
+                throw new DummyException(sprintf(
                     "'%s' argument value '%s' is not a valid date expression",
                     $key,
                     $option

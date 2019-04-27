@@ -3,8 +3,6 @@
 
 namespace Rdlv\WordPress\Dummy;
 
-use Exception;
-
 /**
  * Random lorem ipsum words generator
  *
@@ -54,10 +52,10 @@ class LoripsumWords implements GeneratorInterface
     public function validate($args)
     {
         if (!array_key_exists('count', $args)) {
-            throw new Exception('word count needed.');
+            throw new DummyException('word count needed.');
         }
         if (!is_numeric($args['count']) || !is_int($args['count'] + 0) || $args['count'] < 0) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 'word count must be a positive integer ("%s" given).',
                 $args['count']
             ));

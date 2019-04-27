@@ -4,8 +4,6 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Exception;
-
 /**
  * Provide random dates
  *
@@ -50,14 +48,14 @@ class RandomDate implements GeneratorInterface
         if ($args) {
             foreach ([self::START, self::END] as $key) {
                 if (!array_key_exists($key, $args)) {
-                    throw new Exception(sprintf("a '%s' argument is needed.", $key));
+                    throw new DummyException(sprintf("a '%s' argument is needed.", $key));
                 }
             }
         }
         foreach ($args as $key => $option) {
             $date = strtotime($option);
             if ($date === false) {
-                throw new Exception(sprintf("'%s' argument value '%s' is not a valid date expression", $key, $option));
+                throw new DummyException(sprintf("'%s' argument value '%s' is not a valid date expression", $key, $option));
             } else {
                 $args[$key] = $date;
             }

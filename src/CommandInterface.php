@@ -4,12 +4,15 @@
 namespace Rdlv\WordPress\Dummy;
 
 
+use Exception;
+
 interface CommandInterface
 {
     /**
      * @param [] $args
      * @param [] $assoc_args
-     * @return void
+     * @return integer
+     * @throws Exception
      */
     public function __invoke($args, $assoc_args);
 

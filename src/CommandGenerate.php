@@ -6,7 +6,6 @@ namespace Rdlv\WordPress\Dummy;
 
 use Exception;
 use Symfony\Component\Yaml\Dumper;
-use WP_CLI;
 
 /**
  * Generate the dummy content
@@ -16,15 +15,6 @@ use WP_CLI;
  * the meta handler.
  *
  * ## GENERATE
- *
- * [--tasks=<file>]
- * : Tasks file
- * ---
- * default: dummy.yml
- * ---
- *
- * [--no-tasks]
- * : Do not read tasks file
  *
  * [--without-defaults]
  * : Do not apply default fields
@@ -44,6 +34,12 @@ use WP_CLI;
  * [<fields>...]
  * : Generation rules in the form field=options
  *
+ * Following generators are available (see detailed doc below):
+ * {generators}
+ *
+ * Following handlers are available (see detailed doc below):
+ * {handlers}
+ *
  * Following defaults are applied by command configuration:
  * {defaults}
  *
@@ -51,7 +47,7 @@ use WP_CLI;
  * {aliases}
  *
  */
-class CommandGenerate extends AbstractCommand implements UseFieldParserInterface, ExtendDocInterface
+class CommandGenerate extends AbstractSubCommand implements UseFieldParserInterface, ExtendDocInterface
 {
     use UseFieldParserTrait;
 
@@ -100,15 +96,25 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     {
         $dumper = new Dumper();
         $aliases = $this->field_parser->get_aliases();
+        $generators = $this->field_parser->get_generators();
+        $handlers = $this->field_parser->get_handlers();
         return str_replace(
             [
+                '{generators}',
+                '{handlers}',
                 '{defaults}',
                 '{aliases}',
             ],
             [
+                // generators
+                implode(", ", array_keys($generators)),
+                // handlers
+                implode(", ", array_keys($handlers)),
+                // defaults
                 implode("\n", array_map(function ($key, $val) use ($dumper) {
                     return "\t\t- $key=" . (is_array($val) ? $dumper->dump($val) : $val);
                 }, array_keys($this->defaults), $this->defaults)),
+                // aliases
                 implode("\n", array_map(function ($key, $val) {
                     return "\t\t- $key=$val";
                 }, array_keys($aliases), $aliases)),
@@ -120,12 +126,12 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     public function validate($args, $assoc_args)
     {
         if (!function_exists('wp_insert_post') || !function_exists('wp_update_post')) {
-            throw new Exception('WordPress admin must be loaded');
+            throw new DummyException('WordPress admin must be loaded');
         }
 
         // validate parameters
         if (!is_numeric($assoc_args['count']) || $assoc_args['count'] < 1) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 'count must be a number greater than 0 (%s given).',
                 $assoc_args['count']
             ));
@@ -133,7 +139,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
 
         $post_types = get_post_types();
         if (!in_array($assoc_args['post-type'], $post_types)) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 'post type %s unknown, must be any of %s',
                 $assoc_args['post-type'],
                 implode(', ', $post_types)
@@ -142,11 +148,11 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
 
         $fields = $this->get_fields($args, $assoc_args);
         if (empty($fields)) {
-            throw new Exception('no fields defined, this task is empty.');
+            throw new DummyException('no fields defined, this task is empty.');
         } else {
             foreach ($fields as $field) {
                 if ($field->handler === null && !in_array($field->name, self::AUTHORIZED_FIELDS)) {
-                    throw new Exception(sprintf(
+                    throw new DummyException(sprintf(
                         'field "%s" is not authorized.',
                         $field->name
                     ));
@@ -165,7 +171,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
         }
     }
 
-    protected function run($args, $assoc_args)
+    public function run($args, $assoc_args)
     {
         $this->count = $assoc_args['count'];
         $this->post_type = $assoc_args['post-type'];
@@ -184,7 +190,7 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
                 if ($field->handler) {
                     return false;
                 } elseif (!in_array($field->name, self::AUTHORIZED_FIELDS)) {
-                    throw new Exception(sprintf('Bad field name: %s', $field->name));
+                    throw new DummyException(sprintf('Bad field name: %s', $field->name));
                 } else {
                     return $field->get_value();
                 }
@@ -199,9 +205,8 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
 
             if ($post_id !== 0) {
                 $post_ids[] = $post_id;
-            }
-            else {
-                throw new Exception('post not created.');
+            } else {
+                throw new DummyException('post not created.');
             }
         }
         $this->print_progress($progress, $this->count, $this->count);
@@ -216,8 +221,6 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
                 $this->print_progress($progress, count($post_ids), count($post_ids));
             }
         }
-
-        WP_CLI::success(sprintf('created %s posts', count($post_ids)));
     }
 
     /**
@@ -262,22 +265,5 @@ class CommandGenerate extends AbstractCommand implements UseFieldParserInterface
     private function are_defaults_enabled($assoc_args)
     {
         return !isset($assoc_args['without-defaults']) || $assoc_args['without-defaults'] !== true;
-    }
-
-    private function print_progress($message, $count, $total)
-    {
-        $end = $count === $total;
-        printf(
-            "\r %s " . $message . " %s",
-            WP_CLI::colorize($end ? '%G✔%n' : '%w·%n'),
-            str_pad(
-                $end ? '(' . $total . ')' : '(' . $count . '/' . $total . ')',
-                (int)(floor(log($total) + 1) * 2 + 3),
-                ' '
-            )
-        );
-        if ($end) {
-            echo "\n";
-        }
     }
 }

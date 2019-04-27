@@ -10,9 +10,7 @@ use Exception;
  * Populate ACF field
  *
  * ACF fields are filled with random content according to their type by default.
- *
  * If a field is not found for the created post, an error will be thrown.
- *
  * Complex types are populated recursively, for example Flex and Repeater.
  *
  * Example:
@@ -57,7 +55,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
     {
         if (!$this->initialized) {
             $this->initialized = true;
-            
+
             // parse / initialize connections
             foreach ($this->connections as $key => $connection) {
                 $this->connections[$key] = $this->field_parser->parse_field_value($connection);
@@ -70,7 +68,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
         $this->init();
 
         if (!function_exists('acf_get_field_groups')) {
-            throw new Exception('ACF is not loaded.');
+            throw new DummyException('ACF is not loaded.');
         }
         if (!empty($globals['post-type'])) {
             $this->post_type = $globals['post-type'];
@@ -81,7 +79,7 @@ class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initializ
     {
         $acf_field_object = $this->get_acf_field_object($field, $post_id);
         if (!$acf_field_object) {
-            throw new Exception(sprintf(
+            throw new DummyException(sprintf(
                 'ACF: field %s not found for post %s of type %s',
                 $field->name,
                 $post_id,

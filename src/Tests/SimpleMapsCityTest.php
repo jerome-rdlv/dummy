@@ -14,8 +14,12 @@ class SimpleMapsCityTest extends TestCase
     {
         parent::setUp();
         // create file before test
+        $database_file = (new SimpleMapsCity())->get_database_file();
+        if (!file_exists(dirname($database_file))) {
+            mkdir(dirname($database_file), 0777, true);
+        }
         file_put_contents(
-            (new SimpleMapsCity())->get_database_file(),
+            $database_file,
             <<<EOF
 "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
 "Paris","Paris","48.8667","2.3333","France","FR","FRA","Île-de-France","primary","9904000","1250015082"

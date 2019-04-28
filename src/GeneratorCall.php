@@ -66,7 +66,7 @@ class GeneratorCall
                     $this->toggle_lock($args, true);
                     $this->generator->validate($args);
                     $this->toggle_lock($args, false);
-                   
+
                 } catch (Exception $e) {
                     throw new DummyException(sprintf(
                         self::EXCEPTION_FORMAT,
@@ -163,8 +163,17 @@ class GeneratorCall
     }
 
     /**
+     * @return string
+     * @throws Exception
+     */
+    public function __toString()
+    {
+        return $this->get();
+    }
+
+    /**
      * @param integer|null $post_id
-     * @return mixed
+     * @return string
      * @throws Exception
      */
     public function get($post_id = null)

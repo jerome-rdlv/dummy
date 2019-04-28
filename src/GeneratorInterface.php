@@ -25,7 +25,7 @@ interface GeneratorInterface
     /**
      * @param array $args Array of arguments
      * @param integer $post_id
-     * @return mixed
+     * @return string
      * @throws Exception
      */
     public function get($args, $post_id = null);

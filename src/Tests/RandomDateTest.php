@@ -2,26 +2,35 @@
 
 /** @noinspection PhpParamsInspection, PhpUnhandledExceptionInspection */
 
-namespace Rdlv\WordPress\Dummy\Test;
+namespace Rdlv\WordPress\Dummy\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rdlv\WordPress\Dummy\RandomDate;
+use Rdlv\WordPress\Dummy\Generator\RandomDate;
+use Rdlv\WordPress\Dummy\Generator\RawValue;
+use Rdlv\WordPress\Dummy\GeneratorCall;
 
 class RandomDateTest extends TestCase
 {
     public function testNormalization()
     {
         $generator = new RandomDate();
-        $this->assertEquals([], $generator->normalize([]));
         $this->assertEquals(['start' => '2 days ago'], $generator->normalize(['2 days ago']));
         $this->assertEquals(
             ['start' => '4 days ago', 'end' => '1 day ago'],
             $generator->normalize(['4 days ago', '1 day ago'])
         );
-        $this->assertEquals(
-            ['start' => 'now', 'end' => 'now'],
-            $generator->normalize(['now', 'now', '2 months ago'])
-        );
+    }
+
+    public function testNormalisationEmptyArgs()
+    {
+        $this->expectExceptionMessage("expect at least one argument");
+        (new RandomDate())->normalize([]);
+    }
+
+    public function testNormalisationTooMuchArgs()
+    {
+        $this->expectExceptionMessage("expect at most two arguments");
+        (new RandomDate())->normalize(['now', 'now', 'now']);
     }
 
     public function testStartValidation()
@@ -47,6 +56,15 @@ class RandomDateTest extends TestCase
             'end'   => 'somewhere',
         ]);
     }
+    
+    public function testValidationWithDynamicValue()
+    {
+        (new RandomDate())->validate([
+            'start' => 'now',
+            'end' => new GeneratorCall(null, new RawValue(), '2 day ago'),
+        ]);
+        $this->assertEmpty(null);
+    }
 
     public function testGeneration()
     {
@@ -57,7 +75,7 @@ class RandomDateTest extends TestCase
             'start' => $date_expr,
             'end'   => $date_expr,
         ]));
-        
+
         $date = date('Y-m-d H:i:s');
         $this->assertEquals($date, $generator->get([]));
     }

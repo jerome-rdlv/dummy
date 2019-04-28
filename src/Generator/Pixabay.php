@@ -1,12 +1,16 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Generator;
 
 
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Rdlv\WordPress\Dummy\AbstractImageGenerator;
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\GeneratorInterface;
+use Rdlv\WordPress\Dummy\Initialized;
 use WP_CLI;
 
 /**

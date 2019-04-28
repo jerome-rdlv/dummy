@@ -1,10 +1,11 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Command;
 
 
-use WP_CLI;
+use Rdlv\WordPress\Dummy\AbstractSubCommand;
+use Rdlv\WordPress\Dummy\DummyException;
 
 /**
  * Clear the dummy content
@@ -50,7 +51,7 @@ class CommandClear extends AbstractSubCommand
         if (isset($assoc_args['post-type'])) {
             $post_type = $assoc_args['post-type'];
         }
-       
+
         $query = "
             SELECT ID, post_type
             FROM $wpdb->posts p

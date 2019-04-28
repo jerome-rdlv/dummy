@@ -4,14 +4,16 @@
  * @noinspection PhpParamsInspection,PhpUnhandledExceptionInspection
  */
 
-namespace Rdlv\WordPress\Dummy\Test;
+namespace Rdlv\WordPress\Dummy\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rdlv\WordPress\Dummy\AcfHandler;
 use Rdlv\WordPress\Dummy\FieldParser;
+use Rdlv\WordPress\Dummy\Generator\Loripsum;
+use Rdlv\WordPress\Dummy\Generator\RandomNumber;
+use Rdlv\WordPress\Dummy\Generator\RawValue;
 use Rdlv\WordPress\Dummy\GeneratorInterface;
-use Rdlv\WordPress\Dummy\MetaHandler;
-use Rdlv\WordPress\Dummy\RawValue;
+use Rdlv\WordPress\Dummy\Handler\AcfHandler;
+use Rdlv\WordPress\Dummy\Handler\MetaHandler;
 
 class FieldParserTest extends TestCase
 {
@@ -62,7 +64,7 @@ class FieldParserTest extends TestCase
         $this->assertEquals('test string', $parser->parse_field('test=test string')->get_value());
         $this->assertEquals('html:test string', $parser->parse_field('test=html:test string')->get_value());
         /** @noinspection PhpParamsInspection */
-        $parser->add_generator('html', $this->createMock(GeneratorInterface::class));
+        $parser->add_generator('html', new RawValue());
         $parser->add_generator('raw', new RawValue());
         $this->assertNotEquals('html:test string', $parser->parse_field('test=html:test string')->get_value());
         $this->assertEquals('html:test string', $parser->parse_field('test=raw:html:test string')->get_value());
@@ -75,7 +77,7 @@ class FieldParserTest extends TestCase
     {
         $parser = new FieldParser();
         $this->assertInstanceOf(RawValue::class, $parser->parse_field('test=html')->callback->get_generator());
-        $parser->add_generator('html', $this->createMock(GeneratorInterface::class));
+        $parser->add_generator('html', new RawValue());
         $this->assertInstanceOf(GeneratorInterface::class,
             $parser->parse_field('test=html')->callback->get_generator());
         $this->assertInstanceOf(GeneratorInterface::class,
@@ -93,15 +95,15 @@ class FieldParserTest extends TestCase
         $parser->add_generator('raw', new RawValue());
         $this->assertIsNotArray($parser->parse_field('meta:test=raw:html:lorem')->get_value());
         $this->assertEquals('html:lorem', $parser->parse_field('meta:test=raw:html:lorem')->get_value());
-        $this->assertIsArray($parser->parse_field('test=html:2,h2,h3')->callback->get_args());
+        $this->assertIsArray($parser->parse_field('test=html:2,h2,h3')->callback->get_raw_args());
     }
 
     public function testParsedStrangeArgsArray()
     {
         $parser = new FieldParser();
         $parser->add_generator('html', new RawValue());
-        $this->assertIsArray($parser->parse_field('test=html:[2,h2,h3]')->callback->get_args());
-        $this->assertNotEquals(['2', 'h2', 'h3'], $parser->parse_field('test=html:[2,h2,h3]')->callback->get_args());
+        $this->assertIsArray($parser->parse_field('test=html:[2,h2,h3]')->callback->get_raw_args());
+        $this->assertNotEquals(['2', 'h2', 'h3'], $parser->parse_field('test=html:[2,h2,h3]')->callback->get_raw_args());
     }
     
     public function testParsedYamlField()
@@ -111,21 +113,24 @@ class FieldParserTest extends TestCase
         
         $field = $parser->parse_field('test={html:[2,h2,h3]}');
         $this->assertEquals('html', $field->callback->get_generator_id());
-        $this->assertIsArray($field->callback->get_args());
-        $this->assertEquals(['2', 'h2', 'h3'], $field->callback->get_args());
+        $this->assertIsArray($field->callback->get_raw_args());
+        $this->assertEquals(['2', 'h2', 'h3'], $field->callback->get_raw_args());
     }
     
     public function testFieldWithChildGenerator()
     {
         $parser = new FieldParser();
-        $parser->add_generator('html', new RawValue());
-        $parser->add_generator('number', new RawValue());
+        $parser->add_generator('number', new RandomNumber());
 
-        $field = $parser->parse_field('test={html:[{number:[1,7,93]},h2,h3]}');
-        $this->assertEquals(['1,7,93', 'h2', 'h3'], $field->callback->get_args());
+        $field = $parser->parse_field('test={number:{min:2,max:{number:[5,20]}}}');
+        $args = $field->callback->get_args();
+        $this->assertEquals(2, $args['min']);
+        $this->assertGreaterThanOrEqual(5, $args['max']);
+        $this->assertLessThanOrEqual(20, $args['max']);
 
+        $parser->add_generator('html', new Loripsum());
         $parser->add_generator('raw', new RawValue());
-        $field = $parser->parse_field('test={html:[{raw:"[1,7,93]"},h2,h3]}');
-        $this->assertEquals(['[1,7,93]', 'h2', 'h3'], $field->callback->get_args());
+        $field = $parser->parse_field('test={html:{count:{raw:"[1,7,93]"},options:[h2,h3]}}');
+        $this->assertEquals(['count' => '[1,7,93]', 'options' => ['h2', 'h3']], $field->callback->get_args());
     }
 }

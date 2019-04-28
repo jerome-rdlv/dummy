@@ -5,6 +5,7 @@ namespace Rdlv\WordPress\Dummy;
 
 
 use Exception;
+use Rdlv\WordPress\Dummy\Generator\RawValue;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 
@@ -48,7 +49,7 @@ class FieldParser
     {
         $this->aliases = $aliases;
     }
-    
+
     public function get_aliases()
     {
         return $this->aliases;
@@ -181,14 +182,14 @@ class FieldParser
 //                return $generator_call;
 //            }
 
-            try {
-                // try parsing value
-                $parser = new Parser();
-                $value = $parser->parse($value);
-            } catch (ParseException $e) {
-                // parsing failed, consider raw value
-                return new GeneratorCall(null, new RawValue(), $value);
-            }
+//            try {
+            // try parsing value
+            $parser = new Parser();
+            $value = $parser->parse($value);
+//            } catch (ParseException $e) {
+//                // parsing failed, consider raw value
+//                return new GeneratorCall(null, new RawValue(), $value);
+//            }
         }
 
         $this->resolve_generators($value);

@@ -2,13 +2,14 @@
 
 /** @noinspection PhpParamsInspection, PhpUnhandledExceptionInspection */
 
-namespace Rdlv\WordPress\Dummy\Test;
+namespace Rdlv\WordPress\Dummy\Tests;
 
 
 use PHPUnit\Framework\TestCase;
+use Rdlv\WordPress\Dummy\Command\CommandTasks;
 use Rdlv\WordPress\Dummy\CommandInterface;
-use Rdlv\WordPress\Dummy\CommandTasks;
 use Rdlv\WordPress\Dummy\SubCommandInterface;
+use Rdlv\WordPress\Dummy\Task;
 use Symfony\Component\Yaml\Dumper;
 
 class CommandTasksTest extends TestCase
@@ -114,6 +115,7 @@ class CommandTasksTest extends TestCase
         $this->assertArrayHasKey('references', $tasks);
         $this->assertArrayHasKey('agencies', $tasks);
 
+        /** @var Task[] $tasks */
         $tasks = $cmd->load_tasks(['clear', 'agencies'], ['file' => self::TASKS_FILE]);
 
         $this->assertCount(2, $tasks);

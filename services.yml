@@ -61,8 +61,6 @@ services:
             - [set_key, ['%env(UNSPLASH_ACCESS)%']]
     text:
         class: \Rdlv\WordPress\Dummy\LoripsumWords
-        calls:
-            - [set_html, ['@html']]
     raw:
         class: \Rdlv\WordPress\Dummy\RawValue
     meta:

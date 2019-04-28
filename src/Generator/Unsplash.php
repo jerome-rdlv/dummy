@@ -1,12 +1,18 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Generator;
 
 
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Rdlv\WordPress\Dummy\AbstractImageGenerator;
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\ExtendDocInterface;
+use Rdlv\WordPress\Dummy\GeneratorCall;
+use Rdlv\WordPress\Dummy\GeneratorInterface;
+use Rdlv\WordPress\Dummy\Initialized;
 
 /**
  * Image generator based on Unsplash API
@@ -41,12 +47,14 @@ use GuzzleHttp\Exception\GuzzleException;
  *      - w: Max width of image, default to {max_width}
  *      - h: Max height of image, default to {max_height}
  *      - orientation: {orientations}
- *      - order: {order}
+ *      - random: Random order, defaults to true
  *      - query: Search terms
  *
  * ## Short syntax example
  *
  *      {id}:<width>,<height>,landscape,technology
+ *
+ * You can use 'sequential' to cancel random order.
  *
  * ## Example
  *
@@ -138,7 +146,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
             } elseif (!array_key_exists('orientation', $normalized) && in_array($arg, self::API_IMAGE_ORIENTATIONS)) {
                 $normalized['orientation'] = $arg;
             } else {
-                if (!array_key_exists('search', $normalized)) {
+                if (!array_key_exists('query', $normalized)) {
                     $normalized['query'] = $arg;
                 } else {
                     throw new DummyException(sprintf(
@@ -155,6 +163,29 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
     {
         if (!$this->api_access) {
             throw new DummyException('You must provide an Unsplash API Key to use Unsplash image generator.');
+        }
+
+        foreach (['w', 'h'] as $key) {
+            if (array_key_exists($key, $args) && !$args[$key] instanceof GeneratorCall) {
+                $val = $args[$key];
+                if (!is_numeric($val) || !is_int($val + 0) || $val <= 0) {
+                    throw new DummyException(sprintf(
+                        "%s must be a positive integer greater than zero ('%s' given).",
+                        $key,
+                        $val
+                    ));
+                }
+            }
+        }
+
+        if (array_key_exists('orientation', $args) && !$args['orientation'] instanceof GeneratorCall) {
+            if (!in_array($args['orientation'], self::API_IMAGE_ORIENTATIONS)) {
+                throw new DummyException(sprintf(
+                    "unknown orientation '%s', must be any of %s",
+                    $args['orientation'],
+                    implode(', ', self::API_IMAGE_ORIENTATIONS)
+                ));
+            }
         }
     }
 

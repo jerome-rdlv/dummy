@@ -1,7 +1,9 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Handler;
+
+use Rdlv\WordPress\Dummy\HandlerInterface;
 
 /**
  * Populate post meta

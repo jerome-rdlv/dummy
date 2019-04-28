@@ -1,8 +1,12 @@
 <?php
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Command;
 
 use Exception;
+use Rdlv\WordPress\Dummy\AbstractCommand;
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\MetaCommandInterface;
+use Rdlv\WordPress\Dummy\Task;
 use Symfony\Component\Yaml\Parser;
 
 /**

@@ -1,8 +1,13 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Generator;
 
+
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\GeneratorCall;
+use Rdlv\WordPress\Dummy\GeneratorInterface;
+use Rdlv\WordPress\Dummy\Initialized;
 
 /**
  * Provide sequential dates
@@ -43,6 +48,16 @@ class SequentialDate implements GeneratorInterface, Initialized
 
     public function normalize($args)
     {
+        $count = count($args);
+        if (!$count) {
+            throw new DummyException("expect at least one argument, none given.");
+        } elseif ($count > 2) {
+            throw new DummyException(sprintf(
+                "expect at most two arguments, %s given.",
+                $count
+            ));
+        }
+
         $normalized = [];
         foreach ($args as $arg) {
             foreach ([self::START, self::END] as $key) {
@@ -72,6 +87,10 @@ class SequentialDate implements GeneratorInterface, Initialized
             }
         }
         foreach ($args as $key => $option) {
+            if ($option instanceof GeneratorCall) {
+                // dynamic value, do not test further
+                continue;
+            }
             if (strtotime($option) === false) {
                 throw new DummyException(sprintf(
                     "'%s' argument value '%s' is not a valid date expression",
@@ -95,8 +114,7 @@ class SequentialDate implements GeneratorInterface, Initialized
             $total = $this->count - 1;
             if ($total === 0) {
                 $ts = $start_ts;
-            }
-            else {
+            } else {
                 $progress = min($this->index[$key], $total) / ($total);
                 $ts = ceil(($end_ts - $start_ts) * $progress + $start_ts);
             }

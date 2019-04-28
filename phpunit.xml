@@ -7,16 +7,18 @@
         bootstrap="vendor/autoload.php"
 >
     <testsuites>
-        <testsuite name="Main">
-            <directory>./test</directory>
+        <testsuite name="Dummy Test Suite">
+            <directory>./src/Tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory suffix=".php">./src</directory>
-            <directory suffix=".php">./test</directory>
-            <file>command.php</file>
+            <directory suffix=".php">./</directory>
+            <exclude>
+                <directory>./src/Tests</directory>
+                <directory>./vendor</directory>
+            </exclude>
         </whitelist>
     </filter>
 </phpunit>

@@ -1,10 +1,17 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Command;
 
 
 use Exception;
+use Rdlv\WordPress\Dummy\AbstractSubCommand;
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\ExtendDocInterface;
+use Rdlv\WordPress\Dummy\Field;
+use Rdlv\WordPress\Dummy\FieldParser;
+use Rdlv\WordPress\Dummy\UseFieldParserInterface;
+use Rdlv\WordPress\Dummy\UseFieldParserTrait;
 use Symfony\Component\Yaml\Dumper;
 
 /**

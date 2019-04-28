@@ -2,13 +2,13 @@
 
 /** @noinspection PhpParamsInspection, PhpUnhandledExceptionInspection */
 
-namespace Rdlv\WordPress\Dummy\Test;
+namespace Rdlv\WordPress\Dummy\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rdlv\WordPress\Dummy\CommandGenerate;
+use Rdlv\WordPress\Dummy\Command\CommandGenerate;
 use Rdlv\WordPress\Dummy\Field;
 use Rdlv\WordPress\Dummy\FieldParser;
-use Rdlv\WordPress\Dummy\RawValue;
+use Rdlv\WordPress\Dummy\Generator\RawValue;
 
 class CommandGenerateTest extends TestCase
 {
@@ -39,10 +39,10 @@ class CommandGenerateTest extends TestCase
             /** @var Field $field */
             $field = $fields['content'];
             $this->assertInstanceOf(RawValue::class, $field->callback->get_generator());
-            $this->assertEquals([2, 3, 'short'], $field->callback->get_args());
+            $this->assertEquals([2, 3, 'short'], $field->callback->get_raw_args());
         }
     }
-    
+
     public function testFieldDefaults()
     {
         $cmd = new CommandGenerate();
@@ -58,7 +58,7 @@ class CommandGenerateTest extends TestCase
         /** @var Field $field */
         $field = $fields['content'];
         $this->assertEquals('html', $field->callback->get_generator_id());
-        $this->assertEquals([2, 3, 'short'], $field->callback->get_args());
+        $this->assertEquals([2, 3, 'short'], $field->callback->get_raw_args());
         $this->assertEquals('2,3,short', $field->get_value());
 
         // pass empty field to cancel default
@@ -70,7 +70,7 @@ class CommandGenerateTest extends TestCase
             $fields = $cmd->get_fields($args);
             $this->assertEmpty($fields['content']->get_value());
         }
-        
+
         // cancel defaults flag
         $this->assertEmpty($cmd->get_fields([], ['without-defaults' => true]));
     }

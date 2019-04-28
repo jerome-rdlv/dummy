@@ -1,8 +1,10 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Generator;
 
+
+use Rdlv\WordPress\Dummy\GeneratorInterface;
 
 /**
  * Allow to explicit raw value in case that value is ambiguous (look like a generator call).

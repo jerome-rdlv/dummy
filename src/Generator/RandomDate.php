@@ -1,8 +1,12 @@
 <?php
 
 
-namespace Rdlv\WordPress\Dummy;
+namespace Rdlv\WordPress\Dummy\Generator;
 
+
+use Rdlv\WordPress\Dummy\DummyException;
+use Rdlv\WordPress\Dummy\GeneratorCall;
+use Rdlv\WordPress\Dummy\GeneratorInterface;
 
 /**
  * Provide random dates
@@ -31,7 +35,18 @@ class RandomDate implements GeneratorInterface
 
     public function normalize($args)
     {
+        $count = count($args);
+        if (!$count) {
+            throw new DummyException("expect at least one argument, none given.");
+        } elseif ($count > 2) {
+            throw new DummyException(sprintf(
+                "expect at most two arguments, %s given.",
+                $count
+            ));
+        }
+
         $normalized = [];
+
         foreach ($args as $arg) {
             foreach ([self::START, self::END] as $key) {
                 if (!array_key_exists($key, $normalized)) {
@@ -53,11 +68,16 @@ class RandomDate implements GeneratorInterface
             }
         }
         foreach ($args as $key => $option) {
-            $date = strtotime($option);
-            if ($date === false) {
-                throw new DummyException(sprintf("'%s' argument value '%s' is not a valid date expression", $key, $option));
-            } else {
-                $args[$key] = $date;
+            if ($option instanceof GeneratorCall) {
+                // dynamic value, do not test further
+                continue;
+            }
+            if (strtotime($option) === false) {
+                throw new DummyException(sprintf(
+                    "'%s' argument value '%s' is not a valid date expression",
+                    $key,
+                    $option
+                ));
             }
         }
     }

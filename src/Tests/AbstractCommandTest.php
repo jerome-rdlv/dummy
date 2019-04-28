@@ -3,7 +3,7 @@
 /** @noinspection PhpUnhandledExceptionInspection */
 
 
-namespace Rdlv\WordPress\Dummy\Test;
+namespace Rdlv\WordPress\Dummy\Tests;
 
 
 use PHPUnit\Framework\TestCase;

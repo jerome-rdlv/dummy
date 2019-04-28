@@ -106,7 +106,7 @@ class SimpleMapsCity implements GeneratorInterface
                 // create dir
                 $dir = dirname($database_file);
                 if (!file_exists($dir)) {
-                    wp_mkdir_p($dir);
+                    mkdir($dir, 0777, true);
                 }
 
                 // download database
@@ -192,14 +192,14 @@ class SimpleMapsCity implements GeneratorInterface
 
         // initialization
         $database_file = $this->get_database_file();
-        $min = 0;
-        $max = $this->total;
+        $min_index = 0;
+        $max_index = $this->total;
         $offset = 0;
         if ($country_code) {
             if (!array_key_exists($country_code, $this->countries)) {
                 $country_code = null;
             } else {
-                $max = $this->countries[$country_code]['count'] - 1;
+                $max_index = $this->countries[$country_code]['count'] - 1;
                 $offset = $this->countries[$country_code]['offset'];
             }
         }
@@ -207,10 +207,10 @@ class SimpleMapsCity implements GeneratorInterface
         // generate random indexes
         $indexes = [];
         $i = 0;
-        $page_size = min(self::PAGE_SIZE, $max - count($set->indexes));
+        $page_size = min(self::PAGE_SIZE, ($max_index + 1) - count($set->indexes));
         while ($i++ < $page_size) {
             do {
-                $index = mt_rand($min, $max);
+                $index = mt_rand($min_index, $max_index);
             } while (in_array($index, $indexes) || in_array($index, $set->indexes));
             $indexes[] = $index;
         }
@@ -295,7 +295,7 @@ class SimpleMapsCity implements GeneratorInterface
     /**
      * @return string
      */
-    private function get_database_file(): string
+    public function get_database_file(): string
     {
         return $this->get_cache_dir() . 'dummy_simple_maps_city/db.csv';
     }

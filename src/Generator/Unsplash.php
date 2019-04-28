@@ -8,7 +8,6 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Psr7\Response;
 use Rdlv\WordPress\Dummy\AbstractImageGenerator;
 use Rdlv\WordPress\Dummy\DummyException;
 use Rdlv\WordPress\Dummy\ExtendDocInterface;

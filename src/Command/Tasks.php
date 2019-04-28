@@ -31,7 +31,7 @@ use Symfony\Component\Yaml\Parser;
  * [<tasks>...]
  * : Tasks to execute
  */
-class CommandTasks extends AbstractCommand implements MetaCommandInterface
+class Tasks extends AbstractCommand implements MetaCommandInterface
 {
     private $commands = [];
 

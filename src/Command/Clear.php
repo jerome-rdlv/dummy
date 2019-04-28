@@ -16,7 +16,7 @@ use Rdlv\WordPress\Dummy\DummyException;
  * : The type of post to generate
  *
  */
-class CommandClear extends AbstractSubCommand
+class Clear extends AbstractSubCommand
 {
     public function validate($args, $assoc_args)
     {
@@ -35,7 +35,7 @@ class CommandClear extends AbstractSubCommand
     private function remove_companion()
     {
         if (defined('WPMU_PLUGIN_DIR')) {
-            $local = dirname(__DIR__) . '/inc/dummy.php';
+            $local = __DIR__ . '/../../inc/dummy.php';
             $dest = WPMU_PLUGIN_DIR . '/dummy.php';
             if (file_exists($dest) && file_get_contents($local) === file_get_contents($dest)) {
                 unlink($dest);

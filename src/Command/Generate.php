@@ -54,7 +54,7 @@ use Symfony\Component\Yaml\Dumper;
  * {aliases}
  *
  */
-class CommandGenerate extends AbstractSubCommand implements UseFieldParserInterface, ExtendDocInterface
+class Generate extends AbstractSubCommand implements UseFieldParserInterface, ExtendDocInterface
 {
     use UseFieldParserTrait;
 
@@ -173,7 +173,7 @@ class CommandGenerate extends AbstractSubCommand implements UseFieldParserInterf
         if (defined('WPMU_PLUGIN_DIR')) {
             $dest = WPMU_PLUGIN_DIR . '/dummy.php';
             if (!file_exists($dest)) {
-                copy(dirname(__DIR__) . '/inc/dummy.php', $dest);
+                copy(__DIR__ . '/../../inc/dummy.php', $dest);
             }
         }
     }

@@ -33,7 +33,7 @@ use Rdlv\WordPress\Dummy\UseFieldParserTrait;
  * number of blocs will be created with a random layout for each, and subfields of
  * each bloc will also be populated.
  */
-class AcfHandler implements HandlerInterface, UseFieldParserInterface, Initialized
+class Acf implements HandlerInterface, UseFieldParserInterface, Initialized
 {
     use UseFieldParserTrait;
 

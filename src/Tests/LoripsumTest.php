@@ -16,6 +16,8 @@ class LoripsumTest extends TestCase
     {
         $this->assertEquals(['count' => 5], (new Loripsum())->normalize([5]));
         $this->assertInstanceOf(GeneratorCall::class, (new Loripsum())->normalize([5, 6])['count']);
+        // test that '5' is assigned to count and removed from options
+        $this->assertEquals(['count' => 5], (new Loripsum())->normalize(['5']));
     }
 
     public function testNormalizationTooMuchNumbers()

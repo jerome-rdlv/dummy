@@ -20,7 +20,7 @@ use Rdlv\WordPress\Dummy\GeneratorInterface;
  *
  *      {id}:8
  */
-class LoripsumWords implements GeneratorInterface
+class Wordipsum implements GeneratorInterface
 {
     const API_HTML_URL = 'https://loripsum.net/api/1/plaintext/verylong';
 
@@ -63,11 +63,14 @@ class LoripsumWords implements GeneratorInterface
         if (!array_key_exists('count', $args)) {
             throw new DummyException('word count needed.');
         }
-        if (!is_numeric($args['count']) || !is_int($args['count'] + 0) || $args['count'] < 0) {
-            throw new DummyException(sprintf(
-                'word count must be a positive integer ("%s" given).',
-                $args['count']
-            ));
+        // do not validate further if dynamic value
+        if (!$args['count'] instanceof GeneratorCall) {
+            if (!is_numeric($args['count']) || !is_int($args['count'] + 0) || $args['count'] <= 0) {
+                throw new DummyException(sprintf(
+                    'word count must be a positive integer greater than zero ("%s" given).',
+                    $args['count']
+                ));
+            }
         }
     }
 

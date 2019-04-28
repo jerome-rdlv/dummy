@@ -5,7 +5,7 @@
 namespace Rdlv\WordPress\Dummy\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rdlv\WordPress\Dummy\Command\CommandGenerate;
+use Rdlv\WordPress\Dummy\Command\Generate;
 use Rdlv\WordPress\Dummy\Field;
 use Rdlv\WordPress\Dummy\FieldParser;
 use Rdlv\WordPress\Dummy\Generator\RawValue;
@@ -14,14 +14,14 @@ class CommandGenerateTest extends TestCase
 {
     public function testValidateNotInstalled()
     {
-        $cmd = new CommandGenerate();
+        $cmd = new Generate();
         $this->expectExceptionMessage('WordPress admin must be loaded');
         $cmd->validate([], []);
     }
 
     public function testFieldFormats()
     {
-        $cmd = new CommandGenerate();
+        $cmd = new Generate();
         $field_parser = new FieldParser();
         $field_parser->add_generator('html', new RawValue());
         $cmd->set_field_parser($field_parser);
@@ -45,7 +45,7 @@ class CommandGenerateTest extends TestCase
 
     public function testFieldDefaults()
     {
-        $cmd = new CommandGenerate();
+        $cmd = new Generate();
         $cmd->set_defaults(['content' => 'html:2,3,short']);
         $field_parser = new FieldParser();
         $field_parser->add_generator('html', new RawValue());

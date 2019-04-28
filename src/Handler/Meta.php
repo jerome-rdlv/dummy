@@ -12,7 +12,7 @@ use Rdlv\WordPress\Dummy\HandlerInterface;
  *
  *      {id}:custom_field=raw:your_value
  */
-class MetaHandler implements HandlerInterface
+class Meta implements HandlerInterface
 {
     public function generate($post_id, $field)
     {

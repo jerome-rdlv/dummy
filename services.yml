@@ -43,40 +43,46 @@ services:
     Rdlv\WordPress\Dummy\FieldParser:
         calls:
             - [set_aliases, ['%aliases%']]
+
+    # generators
     date:
-        class: \Rdlv\WordPress\Dummy\RandomDate
+        class: \Rdlv\WordPress\Dummy\Generator\RandomDate
     seqdate:
-        class: \Rdlv\WordPress\Dummy\SequentialDate
+        class: \Rdlv\WordPress\Dummy\Generator\SequentialDate
     number:
-        class: \Rdlv\WordPress\Dummy\RandomNumber
+        class: \Rdlv\WordPress\Dummy\Generator\RandomNumber
     html:
-        class: \Rdlv\WordPress\Dummy\Loripsum
-    #    image:
-    #        class: \Rdlv\WordPress\Dummy\Pixabay
-    #        calls:
-    #            - [set_key, ['%env(PIXABAY_KEY)%']]
+        class: \Rdlv\WordPress\Dummy\Generator\Loripsum
     image:
-        class: \Rdlv\WordPress\Dummy\Unsplash
+        class: \Rdlv\WordPress\Dummy\Generator\Unsplash
         calls:
             - [set_key, ['%env(UNSPLASH_ACCESS)%']]
+    pix:
+        class: \Rdlv\WordPress\Dummy\Pixabay
+        calls:
+            - [set_key, ['%env(PIXABAY_KEY)%']]
     text:
-        class: \Rdlv\WordPress\Dummy\LoripsumWords
+        class: \Rdlv\WordPress\Dummy\Generator\Wordipsum
     raw:
-        class: \Rdlv\WordPress\Dummy\RawValue
+        class: \Rdlv\WordPress\Dummy\Generator\RawValue
+
+    # handlers
     meta:
-        class: \Rdlv\WordPress\Dummy\MetaHandler
+        class: \Rdlv\WordPress\Dummy\Handler\Meta
     acf:
-        class: \Rdlv\WordPress\Dummy\AcfHandler
+        class: \Rdlv\WordPress\Dummy\Handler\Acf
         calls:
             - [set_connections, ['%acf_connections%']]
+
+    # commands
     generate:
-        class: \Rdlv\WordPress\Dummy\CommandGenerate
+        class: \Rdlv\WordPress\Dummy\Command\Generate
         public: true
         calls:
             - [set_defaults, ['%defaults%']]
     clear:
-        class: \Rdlv\WordPress\Dummy\CommandClear
+        class: \Rdlv\WordPress\Dummy\Command\Clear
         public: true
     tasks:
-        class: \Rdlv\WordPress\Dummy\CommandTasks
+        class: \Rdlv\WordPress\Dummy\Command\Tasks
         public: true

@@ -6,7 +6,7 @@ namespace Rdlv\WordPress\Dummy\Tests;
 
 
 use PHPUnit\Framework\TestCase;
-use Rdlv\WordPress\Dummy\Command\CommandTasks;
+use Rdlv\WordPress\Dummy\Command\Tasks;
 use Rdlv\WordPress\Dummy\CommandInterface;
 use Rdlv\WordPress\Dummy\SubCommandInterface;
 use Rdlv\WordPress\Dummy\Task;
@@ -26,21 +26,21 @@ class CommandTasksTest extends TestCase
 
     public function testFileArgumentEmpty()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $this->expectExceptionMessage("'file' argument can not be empty");
         $cmd->load_tasks([], []);
     }
 
     public function testFileDoNotExists()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $this->expectExceptionMessage("does not exist.");
         $cmd->load_tasks([], ['file' => self::TASKS_FILE]);
     }
 
     public function testFileEmpty()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $this->createTasksFile(self::TASKS_FILE, []);
         $this->expectExceptionMessage("no tasks found in tasks file");
         $cmd->load_tasks([], ['file' => self::TASKS_FILE]);
@@ -48,7 +48,7 @@ class CommandTasksTest extends TestCase
 
     public function testTaskHasNoCommand()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $this->createTasksFile(self::TASKS_FILE, [
             'references' => [],
         ]);
@@ -58,7 +58,7 @@ class CommandTasksTest extends TestCase
 
     public function testTaskHasUnknownCommand()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $this->createTasksFile(self::TASKS_FILE, [
             'references' => [
                 'command' => 'clean',
@@ -70,7 +70,7 @@ class CommandTasksTest extends TestCase
 
     public function testInexistentTask()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(CommandInterface::class));
         $this->createTasksFile(self::TASKS_FILE, [
             'refs' => ['command' => 'clear'],
@@ -81,7 +81,7 @@ class CommandTasksTest extends TestCase
 
     public function testTasksOrder()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(CommandInterface::class));
         $this->createTasksFile(self::TASKS_FILE, [
             'test1' => ['command' => 'clear'],
@@ -104,7 +104,7 @@ class CommandTasksTest extends TestCase
 
     public function testTaskLoading()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(CommandInterface::class));
         $cmd->add_command('generate', $this->createMock(CommandInterface::class));
         $this->createTasksFile();
@@ -127,7 +127,7 @@ class CommandTasksTest extends TestCase
 
     public function testInvocation()
     {
-        $cmd = new CommandTasks();
+        $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(SubCommandInterface::class));
         $cmd->add_command('generate', $this->createMock(SubCommandInterface::class));
         $this->createTasksFile();

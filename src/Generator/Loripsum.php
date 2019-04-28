@@ -102,7 +102,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
 
         // get strings
         foreach ($args as $arg) {
-            if (is_string($arg)) {
+            if (!is_numeric($arg)) {
                 if (in_array($arg, self::LENGTH)) {
                     if (array_key_exists('length', $normalize)) {
                         throw new DummyException(sprintf(

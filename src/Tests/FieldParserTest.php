@@ -12,8 +12,8 @@ use Rdlv\WordPress\Dummy\Generator\Loripsum;
 use Rdlv\WordPress\Dummy\Generator\RandomNumber;
 use Rdlv\WordPress\Dummy\Generator\RawValue;
 use Rdlv\WordPress\Dummy\GeneratorInterface;
-use Rdlv\WordPress\Dummy\Handler\AcfHandler;
-use Rdlv\WordPress\Dummy\Handler\MetaHandler;
+use Rdlv\WordPress\Dummy\Handler\Acf;
+use Rdlv\WordPress\Dummy\Handler\Meta;
 
 class FieldParserTest extends TestCase
 {
@@ -28,10 +28,10 @@ class FieldParserTest extends TestCase
     {
         $parser = new FieldParser();
         /** @noinspection PhpParamsInspection */
-        $parser->add_handler('meta', new MetaHandler());
-        $parser->add_handler('acf', new AcfHandler());
+        $parser->add_handler('meta', new Meta());
+        $parser->add_handler('acf', new Acf());
         $this->assertNull($parser->parse_field('test')->handler);
-        $this->assertInstanceOf(MetaHandler::class, $parser->parse_field('meta:test')->handler);
+        $this->assertInstanceOf(Meta::class, $parser->parse_field('meta:test')->handler);
     }
 
     public function testName()
@@ -49,13 +49,13 @@ class FieldParserTest extends TestCase
             'content' => 'post_content',
             'thumb'   => 'meta:_thumbnail_id',
         ]);
-        $parser->add_handler('meta', new MetaHandler());
+        $parser->add_handler('meta', new Meta());
         $this->assertEquals('content', $parser->parse_field('content')->alias);
         $this->assertEquals('post_content', $parser->parse_field('content')->name);
         $this->assertEquals('thumb', $parser->parse_field('thumb')->alias);
         $this->assertEquals('_thumbnail_id', $parser->parse_field('thumb')->name);
         $this->assertEquals('meta:_thumbnail_id', $parser->parse_field('thumb')->key);
-        $this->assertInstanceOf(MetaHandler::class, $parser->parse_field('thumb')->handler);
+        $this->assertInstanceOf(Meta::class, $parser->parse_field('thumb')->handler);
     }
 
     public function testRawContent()

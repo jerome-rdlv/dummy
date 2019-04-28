@@ -179,7 +179,7 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
             self::API_IMAGE_PAGE_SIZE_MIN,
             min(
                 $page_max_size,
-                rand(self::API_IMAGE_PAGE_SIZE_MIN, self::API_IMAGE_PAGE_SIZE_MAX)
+                mt_rand(self::API_IMAGE_PAGE_SIZE_MIN, self::API_IMAGE_PAGE_SIZE_MAX)
             )
         );
         try {
@@ -187,16 +187,12 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
                 'query' => array_replace([], $this->images_params, [
                     'per_page' => $per_page,
                     // get random page
-                    'page'     => rand(1, floor($this->get_image_total() / $per_page)),
+                    'page'     => mt_rand(1, floor($this->get_image_total() / $per_page)),
                 ]),
             ]);
 
         } catch (GuzzleException $e) {
             throw new DummyException('Exception loading images from API: ' . $e->getMessage());
-        }
-
-        if ($response->getStatusCode() !== 200) {
-            throw new DummyException('Exception loading images from API: ' . $response->getReasonPhrase());
         }
 
         /** @noinspection PhpComposerExtensionStubsInspection */
@@ -232,9 +228,6 @@ class Pixabay extends AbstractImageGenerator implements GeneratorInterface, Init
                         'per_page' => self::API_IMAGE_PAGE_SIZE_MIN,
                     ]),
                 ]);
-                if ($response->getStatusCode() !== 200) {
-                    throw new DummyException('Exception loading total from image from API: ' . $response->getReasonPhrase());
-                }
                 /** @noinspection PhpComposerExtensionStubsInspection */
                 $this->images_total = json_decode($response->getBody())->totalHits;
             } catch (GuzzleException $e) {

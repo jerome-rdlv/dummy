@@ -85,7 +85,7 @@ class RandomDate implements GeneratorInterface
     public function get($args, $post_id = null)
     {
         if ($args) {
-            return date('Y-m-d H:i:s', rand(
+            return date('Y-m-d H:i:s', mt_rand(
                 strtotime($args[self::START]),
                 strtotime($args[self::END])
             ));

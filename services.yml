@@ -57,12 +57,16 @@ services:
         class: \Rdlv\WordPress\Dummy\Generator\Unsplash
         calls:
             - [set_key, ['%env(UNSPLASH_ACCESS)%']]
-    pix:
-        class: \Rdlv\WordPress\Dummy\Pixabay
-        calls:
-            - [set_key, ['%env(PIXABAY_KEY)%']]
+#    pix:
+#        class: \Rdlv\WordPress\Dummy\Pixabay
+#        calls:
+#            - [set_key, ['%env(PIXABAY_KEY)%']]
     text:
         class: \Rdlv\WordPress\Dummy\Generator\Wordipsum
+    city:
+        class: \Rdlv\WordPress\Dummy\Generator\SimpleMapsCity
+    field:
+        class: \Rdlv\WordPress\Dummy\Generator\PostFieldValue
     raw:
         class: \Rdlv\WordPress\Dummy\Generator\RawValue
 

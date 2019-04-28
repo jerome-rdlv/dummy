@@ -14,11 +14,20 @@ use Rdlv\WordPress\Dummy\GeneratorInterface;
  *
  * ## Options
  *
- * - count: Number of words to generate
+ *      - count: Number of words to generate
  *
- * Short syntax:
+ * ## Short syntax
  *
+ *      # for fixed word count
+ *      {id}:<count>
+ * 
+ *      # for random word count
+ *      {id}:<min>,<max>
+ * 
+ * ## Examples
+ * 
  *      {id}:8
+ *      {id}:2,12
  */
 class Wordipsum implements GeneratorInterface
 {
@@ -82,9 +91,6 @@ class Wordipsum implements GeneratorInterface
         try {
             $client = new Client();
             $response = $client->request('GET', self::API_HTML_URL);
-            if ($response->getStatusCode() !== 200) {
-                throw new DummyException('Exception loading html from API: ' . $response->getReasonPhrase());
-            }
         } catch (GuzzleException $e) {
             throw new DummyException('Exception loading html from API: ' . $e->getMessage());
         }

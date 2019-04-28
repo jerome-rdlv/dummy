@@ -74,6 +74,6 @@ class RandomNumber implements GeneratorInterface
 
     public function get($args, $post_id = null)
     {
-        return rand($args['min'], $args['max']);
+        return mt_rand($args['min'], $args['max']);
     }
 }

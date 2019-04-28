@@ -23,13 +23,18 @@ class UnsplashTest extends TestCase
             ['query' => 'test', 'orientation' => 'portrait', 'random' => false],
             $gen->normalize(['test', 'portrait', 'sequential'])
         );
+        $this->assertEquals(
+            ['query' => 'cityscape', 'fallback' => 'buildings'],
+            $gen->normalize(['cityscape', 'buildings'])
+            
+        );
         $this->assertEquals(['random' => true], $gen->normalize(['random']));
     }
 
     public function testNormalizeTooManyParameters()
     {
         $this->expectExceptionMessage("too many parameters");
-        (new Unsplash())->normalize(['test', 'test2']);
+        (new Unsplash())->normalize(['test', 'test2', 'est3']);
     }
     
     public function testValidationWithoutKey()

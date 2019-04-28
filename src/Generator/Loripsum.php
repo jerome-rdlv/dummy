@@ -173,7 +173,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
     public function get($args, $post_id = null)
     {
         $options = array_key_exists('options', $args) ? $args['options'] : [];
-        
+
         $query = array_unique(array_map(function ($option) {
             return preg_match('/^h[1-6]$/', $option) ? 'headers' : $option;
         }, $options));
@@ -181,12 +181,12 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
         $levels = array_filter(array_map(function ($option) {
             return preg_replace('/(h([1-6])|.*)/', '\2', $option);
         }, $options));
-        
+
         // add length
         if (array_key_exists('length', $args)) {
             $query[] = $args['length'];
         }
-        
+
         // add count
         if (array_key_exists('count', $args)) {
             $query[] = $args['count'];
@@ -195,9 +195,6 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
         try {
             $client = new Client();
             $response = $client->request('GET', sprintf(self::API_HTML_URL, implode('/', $query)));
-            if ($response->getStatusCode() !== 200) {
-                throw new DummyException('Exception loading html from API: ' . $response->getReasonPhrase());
-            }
         } catch (GuzzleException $e) {
             throw new DummyException('Exception loading html from API: ' . $e->getMessage());
         }

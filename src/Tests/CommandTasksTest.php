@@ -79,6 +79,28 @@ class CommandTasksTest extends TestCase
         $cmd->load_tasks(['rufs'], ['file' => self::TASKS_FILE]);
     }
 
+    public function testMock()
+    {
+        $stub = $this->createMock(CommandInterface::class);
+        if ($stub instanceof CommandInterface) {
+            $this->assertNull($stub([], []));
+            $stub->method('__invoke')->willReturn(2);
+            $this->assertEquals(2, $stub([], []));
+        }
+    }
+
+    public function testProphecy()
+    {
+        // @see https://github.com/phpspec/prophecy#how-to-use-it
+        $prophecy = $this->prophesize(CommandInterface::class);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $prophecy->__invoke(['test'], [])->willReturn(2);
+//        $this->assertEquals(2, $prophecy->reveal()([], []));
+        /** @var CommandInterface $dummy */
+        $dummy = $prophecy->reveal();
+        $this->assertEquals(2, $dummy(['test'], []));
+    }
+
     public function testTasksOrder()
     {
         $cmd = new Tasks();
@@ -131,6 +153,7 @@ class CommandTasksTest extends TestCase
         $cmd->add_command('clear', $this->createMock(SubCommandInterface::class));
         $cmd->add_command('generate', $this->createMock(SubCommandInterface::class));
         $this->createTasksFile();
+        $this->expectOutputString("task clear:\ntask references:\ntask agencies:\n");
         $this->assertEquals(0, $cmd([], ['file' => self::TASKS_FILE]));
     }
 

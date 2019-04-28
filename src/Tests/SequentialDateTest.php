@@ -27,7 +27,7 @@ class SequentialDateTest extends TestCase
         (new SequentialDate())->normalize([]);
     }
 
-    public function testNormalisationTooMuchArgs()
+    public function testNormalisationTooManyArgs()
     {
         $this->expectExceptionMessage("expect at most two arguments");
         (new SequentialDate())->normalize(['now', 'now', 'now']);
@@ -89,7 +89,7 @@ class SequentialDateTest extends TestCase
         $generator->init_task([], [], ['count' => 2]);
         $generator->validate([
             'start' => 'now',
-            'end' => new GeneratorCall(null, new RawValue(), '2 day ago'),
+            'end'   => new GeneratorCall(null, new RawValue(), '2 day ago'),
         ]);
         $this->assertEmpty(null);
     }

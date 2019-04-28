@@ -29,7 +29,7 @@ class RandomNumberTest extends TestCase
         (new RandomNumber())->normalize([2]);
     }
 
-    public function testTooMuchNumbers()
+    public function testTooManyNumbers()
     {
         $this->expectExceptionMessage("expect two arguments, 3 given");
         (new RandomNumber())->normalize([2, 3, 5]);

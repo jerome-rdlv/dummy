@@ -20,13 +20,13 @@ class LoripsumTest extends TestCase
         $this->assertEquals(['count' => 5], (new Loripsum())->normalize(['5']));
     }
 
-    public function testNormalizationTooMuchNumbers()
+    public function testNormalizationTooManyNumbers()
     {
         $this->expectExceptionMessage('3 numbers given');
         (new Loripsum())->normalize([2, 3, 4]);
     }
 
-    public function testNormalizationTooMuchLengths()
+    public function testNormalizationTooManyLengths()
     {
         $this->expectExceptionMessage("length 'short' already set and new length 'long' found.");
         (new Loripsum())->normalize(['short', 2, 4, 'ul', 'long']);

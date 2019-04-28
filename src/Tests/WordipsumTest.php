@@ -30,7 +30,7 @@ class WordipsumTest extends TestCase
         $this->assertEquals(5, $lw->normalize([5])['count']);
     }
     
-    public function testTooMuchNumbers()
+    public function testTooManyNumbers()
     {
         $lw = new Wordipsum();
         $this->expectExceptionMessage("3 numbers given but only one");

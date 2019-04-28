@@ -27,7 +27,7 @@ class RandomDateTest extends TestCase
         (new RandomDate())->normalize([]);
     }
 
-    public function testNormalisationTooMuchArgs()
+    public function testNormalisationTooManyArgs()
     {
         $this->expectExceptionMessage("expect at most two arguments");
         (new RandomDate())->normalize(['now', 'now', 'now']);

@@ -390,12 +390,7 @@ class Unsplash extends AbstractImageGenerator implements GeneratorInterface, Ini
                     $set['images'],
                     array_slice($images, 0, $left)
                 );
-            } else {
-                // no more images returned, change max_upload
-                // to prevent subsequent loadings
-                $this->max_upload = count($set['images']);
             }
-
         }
 
         // commeted to let upper level ajust $args

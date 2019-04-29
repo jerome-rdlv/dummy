@@ -18,11 +18,11 @@ use WP_CLI\SynopsisParser;
  *
  * ## EXAMPLES
  *
- *      # Generate 10 posts with dummy content and post thumbnail
+ *      # Generate 10 posts with fake content and post thumbnail
  *      $ wp dummy generate
  *
  *      # Generate 5 posts with post thumbnail and content including 8 paragraphs, lists, and headings
- *      $ wp dummy generate content=html:8/ul/h2/h3
+ *      $ wp dummy generate --count=5 content=html:8,ul,h2,h3
  *
  *      # Clear the created posts
  *      $ wp dummy clear

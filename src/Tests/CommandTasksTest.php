@@ -68,7 +68,7 @@ class CommandTasksTest extends TestCase
         $cmd->load_tasks([], ['file' => self::TASKS_FILE]);
     }
 
-    public function testInexistentTask()
+    public function testNonExistentTask()
     {
         $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(CommandInterface::class));
@@ -147,7 +147,7 @@ class CommandTasksTest extends TestCase
         $this->assertEquals('6', $tasks['agencies']->get_global('count'));
     }
 
-    public function testInvocation()
+    public function testAllInvocation()
     {
         $cmd = new Tasks();
         $cmd->add_command('clear', $this->createMock(SubCommandInterface::class));
@@ -155,6 +155,16 @@ class CommandTasksTest extends TestCase
         $this->createTasksFile();
         $this->expectOutputString("task clear:\ntask references:\ntask agencies:\n");
         $this->assertEquals(0, $cmd([], ['file' => self::TASKS_FILE]));
+    }
+
+    public function testSpecificInvocation()
+    {
+        $cmd = new Tasks();
+        $cmd->add_command('clear', $this->createMock(SubCommandInterface::class));
+        $cmd->add_command('generate', $this->createMock(SubCommandInterface::class));
+        $this->createTasksFile();
+        $this->expectOutputString("task references:\n");
+        $this->assertEquals(0, $cmd(['references'], ['file' => self::TASKS_FILE]));
     }
 
     private function createTasksFile($path = self::TASKS_FILE, $data = null)

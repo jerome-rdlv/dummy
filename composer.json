@@ -3,8 +3,17 @@
     "description": "Generate rich and complex dummy content in WordPress for testing and development purpose",
     "type": "wp-cli-package",
     "homepage": "https://github.com/jerome-rdlv/dummy",
+    "support": {
+        "issues": "https://github.com/jerome-rdlv/dummy/issues"
+    },
     "license": "MIT",
-    "authors": [],
+    "authors": [
+        {
+            "name": "Jérôme Mulsant",
+            "email": "jerome@rue-de-la-vieille.fr",
+            "homepage": "https://rue-de-la-vieille.fr"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {

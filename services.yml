@@ -20,7 +20,7 @@ parameters:
         author: ''
     acf_connections:
         image: image:1040,800,technology
-        wysiwyg: html:4,ul,h2,h3
+        wysiwyg: html:4,short,ul,h2,h3
         text: text:4,16
         textarea: text:10,60
 services:

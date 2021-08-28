@@ -45,6 +45,8 @@ services:
             - [set_aliases, ['%aliases%']]
 
     # generators
+    identity:
+        class: \Rdlv\WordPress\Dummy\Generator\Identity
     date:
         class: \Rdlv\WordPress\Dummy\Generator\RandomDate
     seqdate:

@@ -90,7 +90,7 @@ the following ones:
 * `image`: `image:1040,800,technology`
 * `wysiwyg`: `html:4,short,ul,h2,h3`
 * `text`: `text:4,16`
-* `textarea`: `text:10,60` 
+* `textarea`: `text:10,60`
 
 Complex types Repeater and Flex are handled too so it is possible to target a Flex field like this:
 
@@ -185,31 +185,31 @@ news:
     command: generate
     post-type: post
     count: 15
-    
+
     # do not apply defaults
     without-defaults: true
-    
+
     # here the fields rules
     fields:
-    
+
         # fill title with between 8 and 12 random words
         title: text:8,12
-        
+
         # set post_date to a random date picked in five last months
         date: date:5 months ago,now
-        
+
         # fill content with 5 short html paragraph containing links, lists and headings
         content: html:5,short,link,ul,h2,h3
-        
+
         # fill thumbnail with a random cityscape photograph, landscape format
         thumb: image:landscape,cityscape
-        
+
         # add a meta filled with a random number between 0 and 100
         meta:news_num number:0,100
-        
+
         # auto fill `contents` acf field
         acf:contents
- 
+
 ```
 
 ## Todo
@@ -218,6 +218,9 @@ news:
 * Add more generators (especially based on [Faker](https://github.com/fzaninotto/Faker))
 * Improve the doc
 * Add ACF type supports
+* Field reference (i.e. handler for *reading* generated fields, and format generator)
+* Recursive behavior (generator calling other ones)
+* Replace Loripsum with Facker as most as possible
 
 
 [sketch]: https://www.sketch.com/

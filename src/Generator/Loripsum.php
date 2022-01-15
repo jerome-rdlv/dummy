@@ -131,7 +131,7 @@ class Loripsum implements GeneratorInterface, ExtendDocInterface
         // validate count if present and readable
         if (array_key_exists('count', $args) && !$args['count'] instanceof GeneratorCall) {
             $count = $args['count'];
-            if (is_numeric($count) && !is_int($count + 0) || $count <= 0) {
+            if (!is_numeric($count) || !is_int($count + 0) || $count <= 0) {
                 throw new DummyException(sprintf(
                     'paragraph count must be a positive integer greater than 0 ("%s" given).',
                     $count

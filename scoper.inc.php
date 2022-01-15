@@ -30,7 +30,7 @@ return [
 	'patchers' => [
 		function (string $filePath, string $prefix, string $content): string {
 			switch ($filePath) {
-				case dirname(__DIR__) . '/vendor/symfony/dependency-injection/Compiler/ResolveInstanceofConditionalsPass.php':
+				case __DIR__ . '/vendor/symfony/dependency-injection/Compiler/ResolveInstanceofConditionalsPass.php':
 					return str_replace(
 						[
 							'$definition = \\substr_replace($definition, \'53\', 2, 2);',

@@ -58,13 +58,13 @@ class LoripsumTest extends TestCase
 
     public function testInvalidOptions()
     {
-        $this->expectExceptionMessageRegExp("/must be an array/");
+        $this->expectExceptionMessageMatches("/must be an array/");
         (new Loripsum())->validate(['options' => 'test']);
     }
 
     public function testUnknownOptions()
     {
-        $this->expectExceptionMessageRegExp("/unknown option 'test'/");
+        $this->expectExceptionMessageMatches("/unknown option 'test'/");
         (new Loripsum())->validate(['options' => ['h2', 'test', 'ul', 'link']]);
     }
 

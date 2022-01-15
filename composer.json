@@ -35,25 +35,25 @@
         "classmap": [
             "vendor_prefixed/",
             "src/"
+        ],
+        "files": [
+            "command.php"
         ]
     },
     "autoload-dev": {
         "classmap": [
-            "tests/",
-            "config/"
+            "tests/"
         ]
     },
     "require": {
         "php": ">=7.1",
         "ext-json": "*",
-        "ext-zip": "*",
-        "composer/installers": "^2.0"
+        "ext-zip": "*"
     },
     "require-dev": {
         "wpackagist-plugin/advanced-custom-fields": ">=5.7",
         "phpunit/phpunit": "^8.0",
         "wp-cli/wp-cli": "^2.5",
-        "humbug/php-scoper": "^0.15.0",
         "johnpbloch/wordpress": "^5.8",
         "guzzlehttp/guzzle": "^6.3",
         "symfony/yaml": "^3.4",
@@ -68,17 +68,15 @@
         }
     ],
     "scripts": {
-        "wp-cli:install": [
-            "test -x 'site/bin/wp' && exit 0; mkdir -p site/bin; cd site/bin; curl https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wp; chmod 744 wp"
-        ],
         "prefix-dependencies": [
-            "@php ./vendor/humbug/php-scoper/bin/php-scoper add-prefix --output-dir=./vendor_prefixed --config=config/scoper.inc.php --force --quiet"
+            "phive install",
+            "@php vendor/bin/php-scoper add-prefix --output-dir=./vendor_prefixed --force"
         ],
         "post-update-cmd": [
-            "@wp-cli:install"
+            "mkdir -p site/bin; cd site/bin; ln -sf ../../vendor/wp-cli/wp-cli/bin/wp"
         ],
-        "post-autoload-dump": [
-            "Rdlv\\WordPress\\Dummy\\Composer\\Actions::prefix_dependencies"
+        "pre-autoload-dump": [
+            "@prefix-dependencies"
         ]
     }
 }

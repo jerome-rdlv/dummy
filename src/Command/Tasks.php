@@ -7,7 +7,7 @@ use Rdlv\WordPress\Dummy\AbstractCommand;
 use Rdlv\WordPress\Dummy\DummyException;
 use Rdlv\WordPress\Dummy\MetaCommandInterface;
 use Rdlv\WordPress\Dummy\Task;
-use Symfony\Component\Yaml\Parser;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\Yaml\Parser;
 
 /**
  * Run predefined tasks

@@ -2,6 +2,7 @@
 wp-cli.local.yml
 node_modules/
 vendor/
+vendor_prefixed/
 *.zip
 *.tar.gz
 *.swp
@@ -9,3 +10,11 @@ vendor/
 *.log
 .phpunit.result.cache
 composer.lock
+build
+
+/site/*
+!/site/config.dist.php
+!/site/wp-cli.dist.yml
+!/site/web/
+/site/web/*
+!/site/web/wp-config.php

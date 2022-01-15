@@ -12,7 +12,7 @@ use Rdlv\WordPress\Dummy\Field;
 use Rdlv\WordPress\Dummy\FieldParser;
 use Rdlv\WordPress\Dummy\UseFieldParserInterface;
 use Rdlv\WordPress\Dummy\UseFieldParserTrait;
-use Symfony\Component\Yaml\Dumper;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\Yaml\Dumper;
 
 /**
  * Generate the dummy content

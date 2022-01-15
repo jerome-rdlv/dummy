@@ -4,9 +4,9 @@
 namespace Rdlv\WordPress\Dummy;
 
 
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\DependencyInjection\ContainerBuilder;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\DependencyInjection\Reference;
 
 class InitializePass implements CompilerPassInterface
 {

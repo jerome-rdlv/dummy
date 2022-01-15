@@ -1,0 +1,5 @@
+url: { FQDN }
+path: web/wp
+user: dev
+server:
+  docroot: web

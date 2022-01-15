@@ -6,7 +6,7 @@ namespace Rdlv\WordPress\Dummy;
 
 use Exception;
 use Rdlv\WordPress\Dummy\Generator\RawValue;
-use Symfony\Component\Yaml\Parser;
+use Rdlv\Wordpress\Dummy\Vendor\Symfony\Component\Yaml\Parser;
 
 class FieldParser
 {

@@ -4,7 +4,8 @@
     "type": "wp-cli-package",
     "homepage": "https://github.com/jerome-rdlv/dummy",
     "support": {
-        "issues": "https://github.com/jerome-rdlv/dummy/issues"
+        "issues": "https://github.com/jerome-rdlv/dummy/issues",
+        "source": "https://github.com/jerome-rdlv/dummy"
     },
     "license": "MIT",
     "authors": [
@@ -17,46 +18,67 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
-        "wordpress-install-dir": "vendor/wordpress",
+        "wordpress-install-dir": "site/web/wp",
         "installer-paths": {
-            "vendor/wordpress/wp-content/mu-plugins/{$name}/": [
+            "site/web/app/mu-plugins/{$name}/": [
                 "type:wordpress-muplugin"
             ],
-            "vendor/wordpress/wp-content/plugins/{$name}/": [
+            "site/web/app/plugins/{$name}/": [
                 "type:wordpress-plugin"
             ],
-            "vendor/wordpress/wp-content/themes/{$name}/": [
+            "site/web/app/themes/{$name}/": [
                 "type:wordpress-theme"
             ]
         }
     },
     "autoload": {
-        "psr-4": {
-            "Rdlv\\WordPress\\Dummy\\": "src/"
-        },
-        "files": [
-            "command.php"
+        "classmap": [
+            "vendor_prefixed/",
+            "src/"
+        ]
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/",
+            "config/"
         ]
     },
     "require": {
         "php": ">=7.1",
         "ext-json": "*",
         "ext-zip": "*",
+        "composer/installers": "^2.0"
+    },
+    "require-dev": {
+        "wpackagist-plugin/advanced-custom-fields": ">=5.7",
+        "phpunit/phpunit": "^8.0",
+        "wp-cli/wp-cli": "^2.5",
+        "humbug/php-scoper": "^0.15.0",
+        "johnpbloch/wordpress": "^5.8",
         "guzzlehttp/guzzle": "^6.3",
         "symfony/yaml": "^3.4",
         "symfony/dependency-injection": "^3.4",
         "symfony/config": "^3.4",
         "fzaninotto/faker": "^1.5"
     },
-    "require-dev": {
-        "johnpbloch/wordpress": ">=4.5",
-        "wpackagist-plugin/advanced-custom-fields": ">=5.7",
-        "phpunit/phpunit": "^8.0"
-    },
     "repositories": [
         {
             "type": "composer",
             "url": "https://wpackagist.org"
         }
-    ]
+    ],
+    "scripts": {
+        "wp-cli:install": [
+            "test -x 'site/bin/wp' && exit 0; mkdir -p site/bin; cd site/bin; curl https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wp; chmod 744 wp"
+        ],
+        "prefix-dependencies": [
+            "@php ./vendor/humbug/php-scoper/bin/php-scoper add-prefix --output-dir=./vendor_prefixed --config=config/scoper.inc.php --force --quiet"
+        ],
+        "post-update-cmd": [
+            "@wp-cli:install"
+        ],
+        "post-autoload-dump": [
+            "Rdlv\\WordPress\\Dummy\\Composer\\Actions::prefix_dependencies"
+        ]
+    }
 }

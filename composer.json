@@ -69,7 +69,7 @@
     ],
     "scripts": {
         "prefix-dependencies": [
-            "phive install",
+            "cd vendor/bin; curl -L https://github.com/humbug/php-scoper/releases/download/0.15.0/php-scoper.phar -o php-scoper",
             "@php vendor/bin/php-scoper add-prefix --output-dir=./vendor_prefixed --force"
         ],
         "post-update-cmd": [

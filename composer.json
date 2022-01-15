@@ -15,6 +15,13 @@
             "homepage": "https://rue-de-la-vieille.fr"
         }
     ],
+    "config": {
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "7.2"
+        },
+        "sort-packages": true
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
@@ -46,7 +53,7 @@
         ]
     },
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.2",
         "ext-json": "*",
         "ext-zip": "*"
     },
@@ -76,7 +83,8 @@
             "mkdir -p site/bin; cd site/bin; ln -sf ../../vendor/wp-cli/wp-cli/bin/wp"
         ],
         "pre-autoload-dump": [
-            "@prefix-dependencies"
+            "@prefix-dependencies",
+            "touch vendor_prefixed/.gitkeep"
         ]
     }
 }

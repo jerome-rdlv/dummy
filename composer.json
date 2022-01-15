@@ -49,7 +49,8 @@
     },
     "autoload-dev": {
         "classmap": [
-            "tests/"
+            "tests/",
+            "config/"
         ]
     },
     "require": {
@@ -58,15 +59,15 @@
         "ext-zip": "*"
     },
     "require-dev": {
-        "wpackagist-plugin/advanced-custom-fields": ">=5.7",
-        "phpunit/phpunit": "^8.0",
-        "wp-cli/wp-cli": "^2.5",
-        "johnpbloch/wordpress": "^5.8",
+        "fzaninotto/faker": "^1.5",
         "guzzlehttp/guzzle": "^6.3",
-        "symfony/yaml": "^3.4",
-        "symfony/dependency-injection": "^3.4",
+        "johnpbloch/wordpress": "^5.8",
+        "phpunit/phpunit": "^8.0",
         "symfony/config": "^3.4",
-        "fzaninotto/faker": "^1.5"
+        "symfony/dependency-injection": "^3.4",
+        "symfony/yaml": "^3.4",
+        "wpackagist-plugin/advanced-custom-fields": ">=5.7",
+        "wp-cli/wp-cli": "^2.5"
     },
     "repositories": [
         {
@@ -83,8 +84,19 @@
             "mkdir -p site/bin; cd site/bin; ln -sf ../../vendor/wp-cli/wp-cli/bin/wp"
         ],
         "pre-autoload-dump": [
-            "@prefix-dependencies",
+            "Rdlv\\WordPress\\Dummy\\Composer\\Actions::prefix_dependencies",
             "touch vendor_prefixed/.gitkeep"
+        ],
+        "test": [
+            "vendor/bin/phpunit"
+        ],
+        "package": [
+            "mkdir -p build",
+            "cp -r inc vendor_prefixed src command.php composer.json composer.lock README.md services.yaml wp-cli.yml build",
+            "@composer --working-dir=./build --no-dev --no-scripts -o -- install",
+            "mkdir -p packages",
+            "out=\"packages/dummy-$(git describe --tags).zip\"; rm \"$out\"; cd build; zip -qr \"../$out\" ./*",
+            "rm -rf build"
         ]
     }
 }

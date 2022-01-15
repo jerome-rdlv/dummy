@@ -13,6 +13,10 @@ return [
 	 * For more see: https://github.com/humbug/php-scoper#finders-and-paths
 	 */
 	'finders'  => [
+		Finder::create()->files()->in('vendor/fzaninotto/faker'),
+		Finder::create()->files()->in('vendor/guzzlehttp/guzzle'),
+		Finder::create()->files()->in('vendor/guzzlehttp/promises'),
+		Finder::create()->files()->in('vendor/guzzlehttp/psr7'),
 		Finder::create()->files()->in('vendor/symfony/config'),
 		Finder::create()->files()->in('vendor/symfony/dependency-injection'),
 		Finder::create()->files()->in('vendor/symfony/yaml'),

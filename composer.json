@@ -18,7 +18,7 @@
     "config": {
         "optimize-autoloader": true,
         "platform": {
-            "php": "7.2"
+            "php": "7.2.5"
         },
         "sort-packages": true
     },
@@ -54,7 +54,7 @@
         ]
     },
     "require": {
-        "php": ">=7.2",
+        "php": "^7.2 || ^8.0",
         "ext-json": "*",
         "ext-zip": "*"
     },
@@ -63,9 +63,9 @@
         "guzzlehttp/guzzle": "^6.3",
         "johnpbloch/wordpress": "^5.8",
         "phpunit/phpunit": "^8.0",
-        "symfony/config": "^3.4",
-        "symfony/dependency-injection": "^3.4",
-        "symfony/yaml": "^3.4",
+        "symfony/config": "^5.4",
+        "symfony/dependency-injection": "^5.4",
+        "symfony/yaml": "^5.4",
         "wpackagist-plugin/advanced-custom-fields": ">=5.7",
         "wp-cli/wp-cli": "^2.5"
     },
@@ -77,7 +77,7 @@
     ],
     "scripts": {
         "prefix-dependencies": [
-            "cd vendor/bin; curl -L https://github.com/humbug/php-scoper/releases/download/0.15.0/php-scoper.phar -o php-scoper",
+            "cd vendor/bin; curl -L https://github.com/humbug/php-scoper/releases/download/0.16.2/php-scoper.phar -o php-scoper",
             "@php vendor/bin/php-scoper add-prefix --output-dir=./vendor_prefixed --force"
         ],
         "post-update-cmd": [

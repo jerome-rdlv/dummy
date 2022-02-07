@@ -19,6 +19,7 @@ return [
 		Finder::create()->files()->in('vendor/guzzlehttp/psr7'),
 		Finder::create()->files()->in('vendor/symfony/config'),
 		Finder::create()->files()->in('vendor/symfony/dependency-injection'),
+		Finder::create()->files()->in('vendor/symfony/service-contracts'),
 		Finder::create()->files()->in('vendor/symfony/yaml'),
 		Finder::create()->files()->in('vendor/psr'),
 	],

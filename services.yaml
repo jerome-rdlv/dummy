@@ -71,10 +71,14 @@ services:
         class: Rdlv\WordPress\Dummy\Generator\PostFieldValue
     raw:
         class: Rdlv\WordPress\Dummy\Generator\RawValue
+    term:
+        class: Rdlv\WordPress\Dummy\Generator\Term
 
     # handlers
     meta:
         class: Rdlv\WordPress\Dummy\Handler\Meta
+    taxo:
+        class: Rdlv\WordPress\Dummy\Handler\Taxonomy
     acf:
         class: Rdlv\WordPress\Dummy\Handler\Acf
         calls:

@@ -22,39 +22,56 @@ use Rdlv\WordPress\Dummy\GeneratorInterface;
  *
  * ## Short syntax
  *
- *      {id}:<begin>,<end>
+ *      {id}:<begin>,<end>,<forma>
  *
  * ## Example
  *
- *      {id}:4 months ago,now
+ *      {id}:4 months ago,now,d/m/Y
  */
 class RandomDate implements GeneratorInterface
 {
     const START = 'start';
     const END = 'end';
+    const FORMAT = 'format';
+    
+    const DEFAULT_FORMAT = 'Y-m-d H:i:s';
 
     public function normalize($args)
     {
         $count = count($args);
         if (!$count) {
             throw new DummyException("expect at least one argument, none given.");
-        } elseif ($count > 2) {
+        } elseif ($count > 3) {
             throw new DummyException(sprintf(
-                "expect at most two arguments, %s given.",
+                "expect at most three arguments, %s given.",
                 $count
             ));
         }
 
         $normalized = [];
-
         foreach ($args as $arg) {
-            foreach ([self::START, self::END] as $key) {
+            if (strtotime($arg) === false && !array_key_exists(self::FORMAT, $normalized)) {
+                $normalized[self::FORMAT] = $arg;
+                continue;
+            }
+            foreach ([self::START, self::END, self::FORMAT] as $key) {
                 if (!array_key_exists($key, $normalized)) {
                     $normalized[$key] = $arg;
                     break;
                 }
             }
         }
+
+        if (!array_key_exists(self::FORMAT, $normalized)) {
+            $normalized[self::FORMAT] = self::DEFAULT_FORMAT;
+        }
+
+        foreach ([self::START, self::END] as $key) {
+            if (!array_key_exists(self::FORMAT, $normalized)) {
+                $normalized[$key] = 'now';
+            }
+        }
+
         return $normalized;
     }
 
@@ -72,7 +89,7 @@ class RandomDate implements GeneratorInterface
                 // dynamic value, do not test further
                 continue;
             }
-            if (strtotime($option) === false) {
+            if (in_array($key, [self::START, self::END]) && strtotime($option) === false) {
                 throw new DummyException(sprintf(
                     "'%s' argument value '%s' is not a valid date expression",
                     $key,
@@ -85,13 +102,13 @@ class RandomDate implements GeneratorInterface
     public function get($args, $post_id = null)
     {
         if ($args) {
-            return date('Y-m-d H:i:s', mt_rand(
+            return date($args[self::FORMAT], mt_rand(
                 strtotime($args[self::START]),
                 strtotime($args[self::END])
             ));
         } else {
             // return now
-            return date('Y-m-d H:i:s');
+            return date($args[self::FORMAT]);
         }
     }
 }

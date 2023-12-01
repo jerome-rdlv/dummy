@@ -53,6 +53,8 @@ services:
         class: Rdlv\WordPress\Dummy\Generator\SequentialDate
     number:
         class: Rdlv\WordPress\Dummy\Generator\RandomNumber
+    enum:
+        class: Rdlv\WordPress\Dummy\Generator\RandomEnum
     html:
         class: Rdlv\WordPress\Dummy\Generator\Loripsum
     image:
